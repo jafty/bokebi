@@ -1,3 +1,5 @@
+import secrets
+
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -27,14 +29,19 @@ def _survey_or_404(survey_id):
 
 def take_survey(request, survey_id):
     survey = _survey_or_404(survey_id)
+    cookie_name = f"bokebi_participant_{survey_id}"
+    submission_token = request.COOKIES.get(cookie_name) or secrets.token_urlsafe(32)
     if request.method == "POST":
         try:
             answers = tuple(int(request.POST[f"q{i}"]) for i in range(1, len(STANDARD_QUESTIONS) + 1))
-            count = SubmitAnswers(surveys, participations).execute(SurveyId(survey_id), answers)
-            return render(request, "take_survey.html", {"survey": survey, "questions": STANDARD_QUESTIONS, "submitted": True, "count": count})
+            count = SubmitAnswers(surveys, participations).execute(SurveyId(survey_id), answers, submission_token)
+            response = render(request, "take_survey.html", {"survey": survey, "questions": STANDARD_QUESTIONS, "submitted": True, "count": count})
         except (KeyError, ValueError) as error:
-            return render(request, "take_survey.html", {"survey": survey, "questions": STANDARD_QUESTIONS, "error": str(error)}, status=400)
-    return render(request, "take_survey.html", {"survey": survey, "questions": STANDARD_QUESTIONS})
+            response = render(request, "take_survey.html", {"survey": survey, "questions": STANDARD_QUESTIONS, "error": str(error)}, status=400)
+    else:
+        response = render(request, "take_survey.html", {"survey": survey, "questions": STANDARD_QUESTIONS})
+    response.set_cookie(cookie_name, submission_token, max_age=60 * 60 * 24 * 365, httponly=True, samesite="Lax", secure=request.is_secure())
+    return response
 
 def contact_opt_in(request, survey_id):
     _survey_or_404(survey_id)

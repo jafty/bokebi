@@ -13,6 +13,11 @@ class DjangoSurveyRepository(SurveyRepository):
 class DjangoParticipationRepository(ParticipationRepository):
     def add(self, participation):
         survey = SurveyRecord.objects.get(public_id=participation.survey_id)
-        ParticipationRecord.objects.create(survey=survey, answers=list(participation.answers))
+        _, created = ParticipationRecord.objects.get_or_create(
+            survey=survey,
+            submission_token=participation.submission_token,
+            defaults={"answers": list(participation.answers)},
+        )
+        return created
     def for_survey(self, survey_id):
-        return [Participation(SurveyId(survey_id), tuple(row.answers)) for row in ParticipationRecord.objects.filter(survey__public_id=survey_id)]
+        return [Participation(SurveyId(survey_id), tuple(row.answers), row.submission_token) for row in ParticipationRecord.objects.filter(survey__public_id=survey_id)]

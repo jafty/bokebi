@@ -11,7 +11,9 @@ class Surveys(SurveyRepository):
     def delete(self, survey_id): self.items.pop(survey_id)
 class Participations(ParticipationRepository):
     def __init__(self): self.items = []
-    def add(self, participation): self.items.append(participation)
+    def add(self, participation):
+        if any(item.survey_id == participation.survey_id and item.submission_token == participation.submission_token for item in self.items): return False
+        self.items.append(participation); return True
     def for_survey(self, survey_id): return [item for item in self.items if item.survey_id == survey_id]
 class Contacts(ContactRepository):
     def __init__(self): self.items = []
@@ -44,14 +46,23 @@ def test_create_survey_rejects_blank_name():
 
 def test_submit_answers_stores_one_anonymous_participation(created):
     surveys, result = created; answers = Participations()
-    assert SubmitAnswers(surveys, answers).execute(result.survey.id, (1, 2, 3, 4, 5)) == 1 and answers.items[0].answers == (1, 2, 3, 4, 5)
+    assert SubmitAnswers(surveys, answers).execute(result.survey.id, (1, 2, 3, 4, 5), "browser-1") == 1 and answers.items[0].answers == (1, 2, 3, 4, 5)
 
 @pytest.mark.parametrize("values", [(1, 2), (0, 2, 3, 4, 5), (1, 2, 3, 4, 6)])
 def test_submit_answers_rejects_incomplete_or_out_of_range_values(created, values):
-    with pytest.raises(ValueError): SubmitAnswers(created[0], Participations()).execute(created[1].survey.id, values)
+    with pytest.raises(ValueError): SubmitAnswers(created[0], Participations()).execute(created[1].survey.id, values, "browser-1")
 
 def test_submit_answers_rejects_unknown_survey():
-    with pytest.raises(LookupError): SubmitAnswers(Surveys(), Participations()).execute(SurveyId("missing"), (1, 2, 3, 4, 5))
+    with pytest.raises(LookupError): SubmitAnswers(Surveys(), Participations()).execute(SurveyId("missing"), (1, 2, 3, 4, 5), "browser-1")
+
+
+def test_repeated_submission_token_does_not_inflate_participation_count(created):
+    surveys, result = created
+    answers = Participations()
+    use_case = SubmitAnswers(surveys, answers)
+    assert use_case.execute(result.survey.id, (1, 2, 3, 4, 5), "same-browser") == 1
+    assert use_case.execute(result.survey.id, (5, 4, 3, 2, 1), "same-browser") == 1
+    assert len(answers.items) == 1
 
 def test_contact_opt_in_is_stored_without_survey_or_answer_identifier():
     contacts = Contacts(); SubmitContactOptIn(contacts).execute(" ME@example.org ", True, False)
@@ -62,12 +73,12 @@ def test_contact_opt_in_requires_valid_email_and_a_purpose(email, colleagues, or
     with pytest.raises(ValueError): SubmitContactOptIn(Contacts()).execute(email, colleagues, organization)
 
 def test_results_remain_locked_below_three_participations(created):
-    surveys, result = created; answers = Participations(); SubmitAnswers(surveys, answers).execute(result.survey.id, (1, 2, 3, 4, 5))
+    surveys, result = created; answers = Participations(); SubmitAnswers(surveys, answers).execute(result.survey.id, (1, 2, 3, 4, 5), "browser-1")
     assert ViewSurveyResults(surveys, answers).execute(result.survey.id).averages is None
 
 def test_results_unlock_with_averages_at_three_participations(created):
     surveys, result = created; answers = Participations(); use_case = SubmitAnswers(surveys, answers)
-    for row in ((1, 2, 3, 4, 5), (3, 2, 3, 2, 1), (5, 2, 3, 3, 3)): use_case.execute(result.survey.id, row)
+    for row in ((1, 2, 3, 4, 5), (3, 2, 3, 2, 1), (5, 2, 3, 3, 3)): use_case.execute(result.survey.id, row, f"browser-{row[0]}")
     assert ViewSurveyResults(surveys, answers).execute(result.survey.id).averages == (3.0, 2.0, 3.0, 3.0, 3.0)
 
 def test_results_reject_unknown_survey():

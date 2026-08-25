@@ -11,7 +11,9 @@ class SurveyRepository(ABC):
 
 class ParticipationRepository(ABC):
     @abstractmethod
-    def add(self, participation: Participation) -> None: ...
+    def add(self, participation: Participation) -> bool:
+        """Store a participation, returning false when its token was already used."""
+        ...
     @abstractmethod
     def for_survey(self, survey_id: SurveyId) -> list[Participation]: ...
 
