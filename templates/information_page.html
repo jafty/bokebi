@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Bokebi{% endblock %}
+{% block content %}
+<article class="max-w-3xl mx-auto">
+  <div class="eyebrow">À propos de Bokebi</div>
+  <h1 class="text-4xl font-medium mt-2 mb-5">{{ title }}</h1>
+  <p class="text-xl text-gray-700 mb-12 pb-8 divider">{{ intro }}</p>
+  <div class="space-y-10">
+    {% for heading, text in sections %}<section><h2 class="text-2xl font-medium mb-3">{{ heading }}</h2><p class="text-lg text-gray-700">{{ text }}</p></section>{% endfor %}
+  </div>
+</article>
+{% endblock %}
