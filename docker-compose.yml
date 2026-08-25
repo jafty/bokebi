@@ -1,0 +1,24 @@
+services:
+  web:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      DEBUG: "1"
+      SECRET_KEY: local-development-key
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_URL: postgresql://bokebi:bokebi@db:5432/bokebi
+      CONTACT_DATABASE_URL: postgresql://bokebi_contacts:bokebi_contacts@contacts-db:5432/bokebi_contacts
+    depends_on:
+      db: {condition: service_healthy}
+      contacts-db: {condition: service_healthy}
+  db:
+    image: postgres:17-alpine
+    environment: {POSTGRES_DB: bokebi, POSTGRES_USER: bokebi, POSTGRES_PASSWORD: bokebi}
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U bokebi"], interval: 3s, timeout: 3s, retries: 10}
+    volumes: [survey-data:/var/lib/postgresql/data]
+  contacts-db:
+    image: postgres:17-alpine
+    environment: {POSTGRES_DB: bokebi_contacts, POSTGRES_USER: bokebi_contacts, POSTGRES_PASSWORD: bokebi_contacts}
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U bokebi_contacts"], interval: 3s, timeout: 3s, retries: 10}
+    volumes: [contact-data:/var/lib/postgresql/data]
+volumes: {survey-data: {}, contact-data: {}}
