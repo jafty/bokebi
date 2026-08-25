@@ -100,9 +100,9 @@ def take_survey(request, survey_id):
     return render(request, "take_survey.html", {"survey": survey, "questions": STANDARD_QUESTIONS})
 
 def contact_opt_in(request, survey_id):
-    _survey_or_404(survey_id)
+    survey = _survey_or_404(survey_id)
     if request.method == "POST" and (request.POST.get("wants_colleagues") or request.POST.get("wants_organization")):
-        try: SubmitContactOptIn(DjangoContactRepository()).execute(request.POST.get("email", ""), bool(request.POST.get("wants_colleagues")), bool(request.POST.get("wants_organization")))
+        try: SubmitContactOptIn(DjangoContactRepository()).execute(request.POST.get("email", ""), bool(request.POST.get("wants_colleagues")), bool(request.POST.get("wants_organization")), survey.team_name)
         except ValueError as error: return render(request, "contact_error.html", {"error": str(error)}, status=400)
     return redirect("results", survey_id=survey_id)
 

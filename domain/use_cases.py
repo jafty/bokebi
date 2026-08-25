@@ -34,8 +34,8 @@ class SubmitAnswers:
 
 class SubmitContactOptIn:
     def __init__(self, contacts: ContactRepository): self.contacts = contacts
-    def execute(self, email: str, wants_colleagues: bool, wants_organization: bool) -> None:
-        self.contacts.add(ContactRequest(email.strip().lower(), wants_colleagues, wants_organization))
+    def execute(self, email: str, wants_colleagues: bool, wants_organization: bool, group_label: str) -> None:
+        self.contacts.add(ContactRequest(email.strip().lower(), wants_colleagues, wants_organization, group_label.strip()))
 
 @dataclass(frozen=True)
 class SurveyResults:

@@ -13,6 +13,7 @@ Create a Railway project, connect the Git repository, and provision **two** mana
 5. Set `ALLOWED_HOSTS` to the Railway hostname and custom domain, comma-separated.
 6. Set `CSRF_TRUSTED_ORIGINS` to each public HTTPS origin.
 7. Do not expose either PostgreSQL service publicly. Limit Railway project access and rotate credentials after staff changes.
+8. Configure SMTP and `CONTACT_NOTIFICATION_RECIPIENTS` if operators should be notified of new contact requests. Notifications contain no submitter data; operators retrieve it from the authenticated admin.
 
 ## Build and release
 
@@ -23,9 +24,10 @@ After the first deployment:
 1. Inspect logs and confirm both migration commands succeed against different hosts/databases.
 2. Open `/`, create a survey, retain its deletion phrase, and submit three test participations.
 3. Confirm results are locked at one/two and unlocked at three.
-4. Submit a contact opt-in and inspect only the contacts database: it must contain no survey/participation identifiers.
+4. Submit a contact opt-in and inspect only the contacts database: it may contain the disclosed group label, but it must contain no survey/participation identifiers or answers.
 5. Delete the test survey with its phrase.
 6. Configure health monitoring on `/` and backups/retention independently for both databases.
+7. Run `python manage.py createsuperuser`, sign in at `/admin/`, and confirm that the contact-request queue is visible only after authentication.
 
 ## Local parity
 

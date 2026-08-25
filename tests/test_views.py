@@ -1,7 +1,9 @@
 import pytest
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.urls import reverse
 from surveys.models import ParticipationRecord, SurveyRecord
+from contacts.models import ContactRequestRecord
 
 @pytest.mark.django_db
 def test_home_and_create_pages_render(client):
@@ -86,3 +88,45 @@ def test_results_invite_uses_poll_url_and_unlocked_results_have_analysis(client)
     assert f'/s/{survey.public_id}/"' in content
     assert "Analyse des résultats" in content
     assert "Situation préoccupante" in content
+
+
+@pytest.mark.django_db(databases=["default", "contacts"])
+def test_contact_requests_are_available_only_in_authenticated_admin(client):
+    request = ContactRequestRecord.objects.create(
+        email="person@example.com",
+        group_label="Example team",
+        wants_colleagues=True,
+        wants_organization=False,
+    )
+    url = reverse("admin:contacts_contactrequestrecord_changelist")
+
+    response = client.get(url)
+    assert response.status_code == 302
+    assert response.url.startswith(reverse("admin:login"))
+
+    admin = get_user_model().objects.create_superuser(username="operator", password="safe-password")
+    client.force_login(admin)
+    response = client.get(url)
+    assert response.status_code == 200
+    assert request.email in response.content.decode()
+    assert request.group_label in response.content.decode()
+
+
+@pytest.mark.django_db(databases=["default", "contacts"])
+def test_contact_opt_in_stores_group_label_but_no_survey_identifier(client):
+    survey = SurveyRecord.objects.create(
+        public_id="private-survey-id",
+        team_name="Example company",
+        deletion_key_hash=make_password("delete"),
+        created_at="2026-01-01T00:00:00Z",
+    )
+
+    response = client.post(reverse("contact-opt-in", args=[survey.public_id]), {
+        "email": "person@example.com",
+        "wants_colleagues": "on",
+    })
+
+    assert response.status_code == 302
+    contact = ContactRequestRecord.objects.get()
+    assert contact.group_label == "Example company"
+    assert not hasattr(contact, "survey_id")

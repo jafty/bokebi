@@ -54,12 +54,12 @@ def test_submit_answers_rejects_unknown_survey():
     with pytest.raises(LookupError): SubmitAnswers(Surveys(), Participations()).execute(SurveyId("missing"), (1, 2, 3, 4, 5))
 
 def test_contact_opt_in_is_stored_without_survey_or_answer_identifier():
-    contacts = Contacts(); SubmitContactOptIn(contacts).execute(" ME@example.org ", True, False)
-    assert contacts.items == [ContactRequest("me@example.org", True, False)] and set(vars(contacts.items[0])) == {"email", "wants_colleagues", "wants_organization"}
+    contacts = Contacts(); SubmitContactOptIn(contacts).execute(" ME@example.org ", True, False, " Team ")
+    assert contacts.items == [ContactRequest("me@example.org", True, False, "Team")]
 
 @pytest.mark.parametrize("email,colleagues,organization", [("invalid", True, False), ("me@example.org", False, False)])
 def test_contact_opt_in_requires_valid_email_and_a_purpose(email, colleagues, organization):
-    with pytest.raises(ValueError): SubmitContactOptIn(Contacts()).execute(email, colleagues, organization)
+    with pytest.raises(ValueError): SubmitContactOptIn(Contacts()).execute(email, colleagues, organization, "Team")
 
 def test_results_remain_locked_below_three_participations(created):
     surveys, result = created; answers = Participations(); SubmitAnswers(surveys, answers).execute(result.survey.id, (1, 2, 3, 4, 5))
