@@ -1,0 +1,12 @@
+{% load static %}<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Bokebi - Outil de sondage confidentiel{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={theme:{extend:{colors:{sage:'#5CA97B',offwhite:'#fafafa',dark:'#1a1a1a'},fontFamily:{serif:['Lora','Georgia','serif']}}}}</script>
+<link rel="stylesheet" href="{% static 'css/bokebi.css' %}"></head>
+<body class="antialiased font-serif flex flex-col min-h-screen"><div class="max-w-4xl mx-auto px-6 pb-12 flex-grow w-full">
+<nav class="flex justify-between items-center py-8 divider mb-12"><a class="text-3xl font-semibold tracking-tight" href="{% url 'home' %}">Bokebi.</a><div class="flex items-center gap-6"><a href="{% url 'home' %}#how-it-works" class="hidden md:block text-gray-600 hover:text-dark text-lg">Comment ça marche ?</a><a href="{% url 'create' %}" class="cta-highlight text-lg font-medium">Lancer un sondage privé</a></div></nav>
+{% block content %}{% endblock %}</div>
+<footer class="bg-white border-t border-gray-200 py-12 mt-20 text-sm font-sans text-gray-600"><div class="max-w-4xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6"><div><span class="font-serif text-xl font-semibold text-dark">Bokebi.</span><p class="text-xs text-gray-500 mt-1">Outil tiers confidentiel d'évaluation des conditions de travail.</p></div><div class="flex flex-wrap gap-6"><a href="#">Mentions légales</a><a href="#">Anonymat & Sécurité</a><a href="#">Charte éthique</a><a href="#">Contact</a></div></div><div class="max-w-4xl mx-auto px-6 mt-8 pt-6 border-t text-xs text-gray-400">&copy; 2026 Bokebi. Initiative indépendante non-commerciale. Aucune donnée personnelle revendue.</div></footer>
+<script src="{% static 'js/bokebi.js' %}" defer></script></body></html>
