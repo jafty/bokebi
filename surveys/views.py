@@ -11,6 +11,54 @@ surveys, participations = DjangoSurveyRepository(), DjangoParticipationRepositor
 
 def home(request): return render(request, "home.html")
 
+
+FOOTER_PAGES = {
+    "legal": {
+        "title": "Mentions légales",
+        "intro": "Les informations essentielles sur l'édition et l'utilisation de Bokebi.",
+        "sections": (
+            ("Édition", "Bokebi est une initiative indépendante et non commerciale. Le service est actuellement exploité à titre de projet ; les coordonnées complètes de l'éditeur seront publiées avant son ouverture au public."),
+            ("Hébergement", "Les informations relatives à l'hébergeur seront ajoutées ici avant la mise en production du service."),
+            ("Responsabilité", "Bokebi fournit un outil d'expression collective et ne remplace ni un conseil juridique, ni un avis médical, ni l'intervention des services d'urgence."),
+        ),
+    },
+    "privacy": {
+        "title": "Anonymat & sécurité",
+        "intro": "La protection des participant·es est une contrainte de conception, pas une option.",
+        "sections": (
+            ("Sondages sans compte", "Aucun compte n'est nécessaire. Les réponses ne demandent ni nom, ni matricule, ni texte libre susceptible d'identifier son auteur."),
+            ("Seuil de confidentialité", "Les moyennes ne sont affichées qu'à partir de trois participations, afin qu'une réponse isolée ne puisse pas être lue."),
+            ("Demandes de contact séparées", "Une adresse e-mail communiquée pour une mise en relation ou un accompagnement est conservée séparément, sans identifiant de sondage ni réponse associée."),
+            ("Votre vigilance", "Ne partagez un sondage protégé que par un canal de confiance et choisissez un mot de passe différent de vos mots de passe habituels."),
+        ),
+    },
+    "ethics": {
+        "title": "Charte éthique",
+        "intro": "Bokebi aide à faire émerger un constat collectif sans exposer les personnes.",
+        "sections": (
+            ("Confidentialité", "Nous minimisons les données collectées et ne revendons aucune donnée personnelle."),
+            ("Libre choix", "Répondre, demander une mise en relation ou solliciter un organisme reste toujours facultatif."),
+            ("Neutralité", "Les résultats restituent les réponses reçues. Ils ne servent ni à noter individuellement des salarié·es, ni à désigner une personne."),
+            ("Usage responsable", "Le service ne doit pas être utilisé pour harceler, identifier ou surveiller des collègues, ni pour diffuser un lien hors du groupe concerné."),
+        ),
+    },
+    "contact": {
+        "title": "Contact",
+        "intro": "Une question sur Bokebi, un signalement de sécurité ou une demande relative à vos données ?",
+        "sections": (
+            ("Nous écrire", "L'adresse de contact dédiée sera publiée ici avant l'ouverture publique. En attendant, utilisez le canal par lequel l'équipe Bokebi vous a présenté le service."),
+            ("Urgence", "Bokebi n'est pas un service d'urgence. En cas de danger immédiat, contactez les services d'urgence ou les interlocuteurs compétents de votre pays."),
+        ),
+    },
+}
+
+
+def information_page(request, page):
+    content = FOOTER_PAGES.get(page)
+    if content is None:
+        raise Http404
+    return render(request, "information_page.html", content)
+
 def create_survey(request):
     context = {}
     if request.method == "POST":
@@ -64,8 +112,16 @@ def results(request, survey_id):
     if password_response is not None:
         return password_response
     result = ViewSurveyResults(surveys, participations).execute(SurveyId(survey_id))
-    rows = zip(STANDARD_QUESTIONS, result.averages or ())
-    return render(request, "results.html", {"survey": survey, "result": result, "rows": rows, "share_url": request.build_absolute_uri()})
+    rows = tuple(zip(STANDARD_QUESTIONS, result.averages or ()))
+    overall_average = round(sum(result.averages) / len(result.averages), 2) if result.averages else None
+    return render(request, "results.html", {
+        "survey": survey,
+        "result": result,
+        "rows": rows,
+        "overall_average": overall_average,
+        "poll_url": request.build_absolute_uri(reverse("take-survey", args=[survey.id])),
+        "results_url": request.build_absolute_uri(),
+    })
 
 def delete_survey(request, survey_id):
     survey = _survey_or_404(survey_id)

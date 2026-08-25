@@ -5,7 +5,9 @@ from surveys.models import ParticipationRecord, SurveyRecord
 
 @pytest.mark.django_db
 def test_home_and_create_pages_render(client):
-    assert client.get(reverse("home")).status_code == client.get(reverse("create")).status_code == 200
+    home = client.get(reverse("home"))
+    assert home.status_code == client.get(reverse("create")).status_code == 200
+    assert home.content.decode().count("Créer un sondage maintenant") == 2
 
 @pytest.mark.django_db
 def test_unknown_survey_is_not_found(client):
@@ -64,3 +66,23 @@ def test_multiple_submissions_create_distinct_participation_records(client):
         .order_by("id")
         .values_list("answers", flat=True)
     ) == [[1, 2, 3, 4, 5], [5, 4, 3, 2, 1]]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("page", ["legal", "privacy", "ethics", "contact"])
+def test_footer_information_pages_render(client, page):
+    assert client.get(reverse("information-page", args=[page])).status_code == 200
+
+
+@pytest.mark.django_db
+def test_results_invite_uses_poll_url_and_unlocked_results_have_analysis(client):
+    survey = SurveyRecord.objects.create(public_id="results", team_name="Results", deletion_key_hash=make_password("delete"), created_at="2026-01-01T00:00:00Z")
+    for answers in ([1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3]):
+        ParticipationRecord.objects.create(survey=survey, answers=answers)
+
+    response = client.get(reverse("results", args=[survey.public_id]))
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert f'/s/{survey.public_id}/"' in content
+    assert "Analyse des résultats" in content
+    assert "Situation préoccupante" in content
