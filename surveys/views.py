@@ -69,7 +69,8 @@ def results(request, survey_id):
         return password_response
     result = ViewSurveyResults(surveys, participations).execute(SurveyId(survey_id))
     rows = zip(STANDARD_QUESTIONS, result.averages or ())
-    return render(request, "results.html", {"survey": survey, "result": result, "rows": rows, "share_url": request.build_absolute_uri()})
+    share_url = request.build_absolute_uri(reverse("take-survey", args=[survey.id]))
+    return render(request, "results.html", {"survey": survey, "result": result, "rows": rows, "share_url": share_url})
 
 def delete_survey(request, survey_id):
     survey = _survey_or_404(survey_id)
