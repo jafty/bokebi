@@ -1,4 +1,5 @@
 import pytest
+from django.contrib.auth.hashers import make_password
 from django.urls import reverse
 from django.utils import timezone
 from surveys.models import SurveyRecord
@@ -27,3 +28,21 @@ def test_results_share_link_points_to_participation_page(client):
     assert response.status_code == 200
     assert response.context["share_url"] == expected_url
     assert response.content.count(expected_url.encode()) == 2
+    
+    
+@pytest.mark.django_db
+def test_repeated_posts_from_one_browser_count_once(client):
+    from datetime import datetime, timezone
+
+    survey = SurveyRecord.objects.create(
+        public_id="repeat-test",
+        team_name="Team",
+        deletion_key_hash="hash",
+        created_at=datetime.now(timezone.utc),
+    )
+    url = reverse("take-survey", args=[survey.public_id])
+    client.get(url)
+    answers = {f"q{i}": "3" for i in range(1, 6)}
+    assert client.post(url, answers).status_code == 200
+    assert client.post(url, answers).status_code == 200
+    assert survey.participations.count() == 1

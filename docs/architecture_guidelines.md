@@ -8,7 +8,7 @@ Django is an outer adapter. Views translate HTTP input into use-case arguments a
 
 ## Domain rules
 
-* A survey is created without an account and receives an unpredictable public ID and a four-word deletion key. Only a hash of the deletion key is persisted.
+* A survey is created without an account and receives an unpredictable public ID and a 128-bit deletion key. Only a hash of the deletion key is persisted, so the creator must retain it.
 * Every participation contains exactly the five standardized answers; each answer is an integer from 1 through 5.
 * Results contain no averages until at least three participations exist.
 * Contact is optional and occurs only after answer submission.
