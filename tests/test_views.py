@@ -1,6 +1,7 @@
 import pytest
+from django.contrib.auth.hashers import make_password
 from django.urls import reverse
-from surveys.models import SurveyRecord
+from surveys.models import ParticipationRecord, SurveyRecord
 
 @pytest.mark.django_db
 def test_home_and_create_pages_render(client):

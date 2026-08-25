@@ -27,6 +27,18 @@ def _survey_or_404(survey_id):
     if survey is None: raise Http404
     return survey
 
+def _require_survey_password(request, survey):
+    """Return a password response when access has not yet been granted."""
+    if survey.password_hash is None or request.session.get(f"survey_access_{survey.id}"):
+        return None
+    context = {"survey": survey}
+    if request.method == "POST" and "survey_password" in request.POST:
+        if DjangoSecretGateway().matches(request.POST["survey_password"], survey.password_hash):
+            request.session[f"survey_access_{survey.id}"] = True
+            return redirect(request.path)
+        context["error"] = "Mot de passe incorrect"
+    return render(request, "survey_password.html", context, status=403)
+
 def take_survey(request, survey_id):
     survey = _survey_or_404(survey_id)
     cookie_name = f"bokebi_participant_{survey_id}"
@@ -52,6 +64,9 @@ def contact_opt_in(request, survey_id):
 
 def results(request, survey_id):
     survey = _survey_or_404(survey_id)
+    password_response = _require_survey_password(request, survey)
+    if password_response is not None:
+        return password_response
     result = ViewSurveyResults(surveys, participations).execute(SurveyId(survey_id))
     rows = zip(STANDARD_QUESTIONS, result.averages or ())
     return render(request, "results.html", {"survey": survey, "result": result, "rows": rows, "share_url": request.build_absolute_uri()})
