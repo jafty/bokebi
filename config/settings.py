@@ -2,9 +2,12 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv("SECRET_KEY", "development-only-key")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ImproperlyConfigured("The SECRET_KEY environment variable is required")
 DEBUG = os.getenv("DEBUG", "0") == "1"
 ALLOWED_HOSTS = [host for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host]
 CSRF_TRUSTED_ORIGINS = [url for url in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if url]

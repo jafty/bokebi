@@ -4,21 +4,27 @@ services:
     ports: ["8000:8000"]
     environment:
       DEBUG: "1"
-      SECRET_KEY: local-development-key
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
       ALLOWED_HOSTS: localhost,127.0.0.1
-      DATABASE_URL: postgresql://bokebi:bokebi@db:5432/bokebi
-      CONTACT_DATABASE_URL: postgresql://bokebi_contacts:bokebi_contacts@contacts-db:5432/bokebi_contacts
+      DATABASE_URL: postgresql://${SURVEY_DB_USER:-bokebi}:${SURVEY_DB_PASSWORD:?Set SURVEY_DB_PASSWORD in .env}@db:5432/${SURVEY_DB_NAME:-bokebi}
+      CONTACT_DATABASE_URL: postgresql://${CONTACT_DB_USER:-bokebi_contacts}:${CONTACT_DB_PASSWORD:?Set CONTACT_DB_PASSWORD in .env}@contacts-db:5432/${CONTACT_DB_NAME:-bokebi_contacts}
     depends_on:
       db: {condition: service_healthy}
       contacts-db: {condition: service_healthy}
   db:
     image: postgres:17-alpine
-    environment: {POSTGRES_DB: bokebi, POSTGRES_USER: bokebi, POSTGRES_PASSWORD: bokebi}
-    healthcheck: {test: ["CMD-SHELL", "pg_isready -U bokebi"], interval: 3s, timeout: 3s, retries: 10}
+    environment:
+      POSTGRES_DB: ${SURVEY_DB_NAME:-bokebi}
+      POSTGRES_USER: ${SURVEY_DB_USER:-bokebi}
+      POSTGRES_PASSWORD: ${SURVEY_DB_PASSWORD:?Set SURVEY_DB_PASSWORD in .env}
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"], interval: 3s, timeout: 3s, retries: 10}
     volumes: [survey-data:/var/lib/postgresql/data]
   contacts-db:
     image: postgres:17-alpine
-    environment: {POSTGRES_DB: bokebi_contacts, POSTGRES_USER: bokebi_contacts, POSTGRES_PASSWORD: bokebi_contacts}
-    healthcheck: {test: ["CMD-SHELL", "pg_isready -U bokebi_contacts"], interval: 3s, timeout: 3s, retries: 10}
+    environment:
+      POSTGRES_DB: ${CONTACT_DB_NAME:-bokebi_contacts}
+      POSTGRES_USER: ${CONTACT_DB_USER:-bokebi_contacts}
+      POSTGRES_PASSWORD: ${CONTACT_DB_PASSWORD:?Set CONTACT_DB_PASSWORD in .env}
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"], interval: 3s, timeout: 3s, retries: 10}
     volumes: [contact-data:/var/lib/postgresql/data]
 volumes: {survey-data: {}, contact-data: {}}

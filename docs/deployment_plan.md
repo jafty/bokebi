@@ -29,7 +29,13 @@ After the first deployment:
 
 ## Local parity
 
-Copy `.env.example` to `.env` and run `docker compose up --build`. Compose starts the application and two separate PostgreSQL containers. Run tests independently with `docker compose run --rm web pytest -q`.
+Copy `.env.example` to `.env`, generate independent random values for
+`SECRET_KEY`, `SURVEY_DB_PASSWORD`, and `CONTACT_DB_PASSWORD`, and then run
+`docker compose up --build`. The Compose file deliberately fails fast when any
+of these values is absent. Compose starts the application and two separate
+PostgreSQL containers. Run tests independently with
+`docker compose run --rm web pytest -q`. Never commit `.env`; only the empty
+`.env.example` belongs in source control.
 
 ## Rollback
 
