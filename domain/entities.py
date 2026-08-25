@@ -24,6 +24,7 @@ class Survey:
 class Participation:
     survey_id: SurveyId
     answers: tuple[int, ...]
+    submission_token: str
 
 @dataclass(frozen=True)
 class ContactRequest:

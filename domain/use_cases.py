@@ -24,12 +24,16 @@ class CreateSurvey:
 class SubmitAnswers:
     def __init__(self, surveys: SurveyRepository, participations: ParticipationRepository):
         self.surveys, self.participations = surveys, participations
-    def execute(self, survey_id: SurveyId, answers: tuple[int, ...]) -> int:
+    def execute(self, survey_id: SurveyId, answers: tuple[int, ...], submission_token: str) -> int:
         if self.surveys.get(survey_id) is None:
             raise LookupError("Survey not found")
         if len(answers) != len(STANDARD_QUESTIONS) or any(answer not in range(1, 6) for answer in answers):
             raise ValueError("Every answer must be between 1 and 5")
-        self.participations.add(Participation(survey_id, answers))
+        if not submission_token or len(submission_token) > 64:
+            raise ValueError("A valid submission token is required")
+        # Replaying the same browser token is deliberately idempotent: it avoids
+        # inflating the anonymity threshold without burdening small teams with accounts.
+        self.participations.add(Participation(survey_id, answers, submission_token))
         return len(self.participations.for_survey(survey_id))
 
 class SubmitContactOptIn:
