@@ -42,3 +42,25 @@ def test_protected_survey_rejects_answer_submission_without_password(client, pro
 
     assert client.post(url, {"q1": "5"}).status_code == 403
     assert ParticipationRecord.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_multiple_submissions_create_distinct_participation_records(client):
+    survey = SurveyRecord.objects.create(
+        public_id="repeatable",
+        team_name="Repeatable survey",
+        deletion_key_hash=make_password("delete me"),
+        created_at="2026-01-01T00:00:00Z",
+    )
+    url = reverse("take-survey", args=[survey.public_id])
+
+    first_answers = {f"q{i}": str(i) for i in range(1, 6)}
+    second_answers = {f"q{i}": str(6 - i) for i in range(1, 6)}
+
+    assert client.post(url, first_answers).status_code == 200
+    assert client.post(url, second_answers).status_code == 200
+    assert list(
+        ParticipationRecord.objects.filter(survey=survey)
+        .order_by("id")
+        .values_list("answers", flat=True)
+    ) == [[1, 2, 3, 4, 5], [5, 4, 3, 2, 1]]
