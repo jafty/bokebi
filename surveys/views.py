@@ -17,9 +17,10 @@ FOOTER_PAGES = {
         "title": "Mentions légales",
         "intro": "Les informations essentielles sur l'édition et l'utilisation de Bokebi.",
         "sections": (
-            ("Édition", "Bokebi est une initiative indépendante et non commerciale. Le service est actuellement exploité à titre de projet ; les coordonnées complètes de l'éditeur seront publiées avant son ouverture au public."),
-            ("Hébergement", "Les informations relatives à l'hébergeur seront ajoutées ici avant la mise en production du service."),
-            ("Responsabilité", "Bokebi fournit un outil d'expression collective et ne remplace ni un conseil juridique, ni un avis médical, ni l'intervention des services d'urgence."),
+            ("Éditeur du site", "Le site Bokebi est édité à titre non professionnel par un particulier au sens de l'article 6, III, 2 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique (LCEN). Les coordonnées personnelles de l'auteur ont été transmises à l'hébergeur du site."),
+            ("Contact", "Pour toute question ou demande de modération : contact@bokebi.org"),
+            ("Hébergement", "Le site est hébergé par :\nRailway Corp.\n548 Market St, Suite 500\nSan Francisco, CA 94104, États-Unis\nSite web : https://railway.app"),
+            ("Données personnelles & Anonymat", "Bokebi ne collecte aucune donnée permettant d'identifier directement les participants aux sondages sans leur consentement explicite. Les réponses aux sondages sont strictement anonymisées et dissociées de toute information de contact éventuelle."),
         ),
     },
     "privacy": {
