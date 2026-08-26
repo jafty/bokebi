@@ -20,4 +20,8 @@ class DjangoContactRepository(ContactRepository):
                     fail_silently=False,
                 ),
                 using="contacts",
+                # A notification is best-effort: the contact request has already
+                # been saved and an unavailable SMTP server must not turn the
+                # submitter's successful opt-in into an HTTP 500 response.
+                robust=True,
             )
