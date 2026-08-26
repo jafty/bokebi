@@ -9,12 +9,13 @@ services:
       DATABASE_URL: postgresql://${SURVEY_DB_USER:-bokebi}:${SURVEY_DB_PASSWORD:?Set SURVEY_DB_PASSWORD in .env}@db:5432/${SURVEY_DB_NAME:-bokebi}
       CONTACT_DATABASE_URL: postgresql://${CONTACT_DB_USER:-bokebi_contacts}:${CONTACT_DB_PASSWORD:?Set CONTACT_DB_PASSWORD in .env}@contacts-db:5432/${CONTACT_DB_NAME:-bokebi_contacts}
       CONTACT_NOTIFICATION_RECIPIENTS: ${CONTACT_NOTIFICATION_RECIPIENTS:-}
-      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
       EMAIL_HOST: ${EMAIL_HOST:-localhost}
       EMAIL_PORT: ${EMAIL_PORT:-25}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
       EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
       EMAIL_USE_TLS: ${EMAIL_USE_TLS:-0}
+      EMAIL_TIMEOUT: ${EMAIL_TIMEOUT:-10}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-bokebi@localhost}
     depends_on:
       db: {condition: service_healthy}

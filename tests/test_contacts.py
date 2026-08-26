@@ -27,3 +27,4 @@ def test_contact_notification_contains_no_submitter_data():
     assert "Private team" not in body
     assert sender == "notifications@example.com"
     assert recipients == ["operator@example.com"]
+    assert send_mail.call_args.kwargs["fail_silently"] is False
