@@ -17,7 +17,7 @@ class DjangoContactRepository(ContactRepository):
                     "Aucune coordonnée n’est incluse dans cet e-mail afin de préserver sa confidentialité.",
                     settings.DEFAULT_FROM_EMAIL,
                     settings.CONTACT_NOTIFICATION_RECIPIENTS,
-                    fail_silently=True,
+                    fail_silently=False,
                 ),
                 using="contacts",
             )
