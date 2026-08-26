@@ -22,10 +22,12 @@ def test_example_environment_contains_no_secret_values() -> None:
     assert values["SURVEY_DB_PASSWORD"] == ""
     assert values["CONTACT_DB_PASSWORD"] == ""
     assert values["EMAIL_HOST_PASSWORD"] == ""
+    assert values["BREVO_API_KEY"] == ""
+    assert values["BREVO_SENDER_EMAIL"] == ""
 
 
-def test_email_uses_smtp_backend_by_default() -> None:
+def test_email_uses_brevo_api_backend_by_default() -> None:
     settings_source = Path("config/settings.py").read_text()
 
-    assert 'os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")' in settings_source
+    assert 'os.getenv("EMAIL_BACKEND", "contacts.email_backend.BrevoEmailBackend")' in settings_source
     assert 'os.getenv("EMAIL_TIMEOUT", "10")' in settings_source
