@@ -13,7 +13,7 @@ Create a Railway project, connect the Git repository, and provision **two** mana
 5. Set `ALLOWED_HOSTS` to the Railway hostname and custom domain, comma-separated.
 6. Set `CSRF_TRUSTED_ORIGINS` to each public HTTPS origin.
 7. Do not expose either PostgreSQL service publicly. Limit Railway project access and rotate credentials after staff changes.
-8. Configure SMTP and `CONTACT_NOTIFICATION_RECIPIENTS` if operators should be notified of new contact requests. Notifications contain no submitter data; operators retrieve it from the authenticated admin.
+8. Configure `BREVO_API_KEY`, a verified `BREVO_SENDER_EMAIL`, and `CONTACT_NOTIFICATION_RECIPIENTS` if operators should be notified of new contact requests. Notifications contain no submitter data; operators retrieve it from the authenticated admin.
 
 ## Build and release
 
