@@ -10,6 +10,8 @@ def test_home_and_create_pages_render(client):
     home = client.get(reverse("home"))
     assert home.status_code == client.get(reverse("create")).status_code == 200
     assert home.content.decode().count("Créer un sondage maintenant") == 2
+    assert 'href="https://www.japhet-stmn.fr"' in home.content.decode()
+    assert "Conçu par un développeur web indépendant" in home.content.decode()
 
 @pytest.mark.django_db
 def test_unknown_survey_is_not_found(client):
@@ -88,6 +90,18 @@ def test_results_invite_uses_poll_url_and_unlocked_results_have_analysis(client)
     assert f'/s/{survey.public_id}/"' in content
     assert "Analyse des résultats" in content
     assert "Situation préoccupante" in content
+
+
+@pytest.mark.django_db
+def test_legal_page_displays_publisher_contact_host_and_privacy_details(client):
+    response = client.get("/informations/legal/")
+
+    content = response.content.decode()
+    assert "édité à titre non professionnel par un particulier" in content
+    assert "contact@bokebi.org" in content
+    assert "Railway Corp." in content
+    assert 'href="https://railway.app"' in content
+    assert "strictement anonymisées" in content
 
 
 @pytest.mark.django_db(databases=["default", "contacts"])
