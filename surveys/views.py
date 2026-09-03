@@ -30,7 +30,7 @@ FOOTER_PAGES = {
             ("Sondages sans compte", "Aucun compte n'est nécessaire. Les réponses ne demandent ni nom, ni matricule, ni texte libre susceptible d'identifier son auteur."),
             ("Seuil de confidentialité", "Les moyennes ne sont affichées qu'à partir de trois participations, afin qu'une réponse isolée ne puisse pas être lue."),
             ("Demandes de contact séparées", "Une adresse e-mail communiquée pour une mise en relation ou un accompagnement est conservée séparément, sans identifiant de sondage ni réponse associée."),
-            ("Votre vigilance", "Ne partagez un sondage protégé que par un canal de confiance et choisissez un mot de passe différent de vos mots de passe habituels."),
+            ("Reste vigilant", "Partage un sondage protégé par un canal de confiance et choisis un mot de passe différent de tes mots de passe habituels."),
         ),
     },
     "ethics": {
@@ -45,10 +45,10 @@ FOOTER_PAGES = {
     },
     "contact": {
         "title": "Contact",
-        "intro": "Une question sur Bokebi, un signalement de sécurité ou une demande relative à vos données ?",
+        "intro": "Une question sur Bokebi, un signalement de sécurité ou une demande relative à tes données ?",
         "sections": (
-            ("Nous écrire", "L'adresse de contact dédiée sera publiée ici avant l'ouverture publique. En attendant, utilisez le canal par lequel l'équipe Bokebi vous a présenté le service."),
-            ("Urgence", "Bokebi n'est pas un service d'urgence. En cas de danger immédiat, contactez les services d'urgence ou les interlocuteurs compétents de votre pays."),
+            ("Nous écrire", "L'adresse de contact dédiée sera publiée ici avant l'ouverture publique. En attendant, utilise le canal par lequel l'équipe Bokebi t'a présenté le service."),
+            ("Urgence", "Bokebi n'est pas un service d'urgence. En cas de danger immédiat, contacte les services d'urgence ou les interlocuteurs compétents de ton pays."),
         ),
     },
 }
