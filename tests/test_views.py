@@ -9,7 +9,7 @@ from contacts.models import ContactRequestRecord
 def test_home_and_create_pages_render(client):
     home = client.get(reverse("home"))
     assert home.status_code == client.get(reverse("create")).status_code == 200
-    assert home.content.decode().count("Créer un sondage maintenant") == 2
+    assert home.content.decode().count("Créer un sondage privé") == 3
     assert 'href="https://www.japhet-stmn.fr"' in home.content.decode()
     assert "Conçu par un développeur web indépendant" in home.content.decode()
 
