@@ -17,20 +17,20 @@ FOOTER_PAGES = {
         "title": "Mentions légales",
         "intro": "Les informations essentielles sur l'édition et l'utilisation de Bokebi.",
         "sections": (
-            ("Éditeur du site", "Le site Bokebi est édité à titre non professionnel par un particulier au sens de l'article 6, III, 2 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique (LCEN). Les coordonnées personnelles de l'auteur ont été transmises à l'hébergeur du site."),
+            ("Édition du site", "Le site Bokebi est édité à titre non professionnel par une personne physique au sens de l'article 6, III, 2 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique (LCEN). Ses coordonnées personnelles ont été transmises au service d'hébergement du site."),
             ("Contact", "Pour toute question ou demande de modération : contact@bokebi.org"),
             ("Hébergement", "Le site est hébergé par :\nRailway Corp.\n548 Market St, Suite 500\nSan Francisco, CA 94104, États-Unis\nSite web : https://railway.app"),
-            ("Données personnelles & Anonymat", "Bokebi ne collecte aucune donnée permettant d'identifier directement les participants aux sondages sans leur consentement explicite. Les réponses aux sondages sont strictement anonymisées et dissociées de toute information de contact éventuelle."),
+            ("Données personnelles & Anonymat", "Bokebi ne collecte aucune donnée permettant d'identifier directement les personnes qui participent aux sondages sans consentement explicite. Les réponses aux sondages sont strictement anonymisées et dissociées de toute information de contact éventuelle."),
         ),
     },
     "privacy": {
         "title": "Anonymat & sécurité",
-        "intro": "La protection des participant·es est une contrainte de conception, pas une option.",
+        "intro": "La protection des personnes qui participent est une contrainte de conception, pas une option.",
         "sections": (
-            ("Sondages sans compte", "Aucun compte n'est nécessaire. Les réponses ne demandent ni nom, ni matricule, ni texte libre susceptible d'identifier son auteur."),
+            ("Sondages sans compte", "Aucun compte n'est nécessaire. Les réponses ne demandent ni nom, ni matricule, ni texte libre susceptible de permettre une identification."),
             ("Seuil de confidentialité", "Les moyennes ne sont affichées qu'à partir de trois participations, afin qu'une réponse isolée ne puisse pas être lue."),
             ("Demandes de contact séparées", "Une adresse e-mail communiquée pour une mise en relation ou un accompagnement est conservée séparément, sans identifiant de sondage ni réponse associée."),
-            ("Reste vigilant", "Partage un sondage protégé par un canal de confiance et choisis un mot de passe différent de tes mots de passe habituels."),
+            ("Adopte les bons réflexes", "Partage un sondage protégé par un canal de confiance et choisis un mot de passe différent de tes mots de passe habituels."),
         ),
     },
     "ethics": {
@@ -39,7 +39,7 @@ FOOTER_PAGES = {
         "sections": (
             ("Confidentialité", "Nous minimisons les données collectées et ne revendons aucune donnée personnelle."),
             ("Libre choix", "Répondre, demander une mise en relation ou solliciter un organisme reste toujours facultatif."),
-            ("Neutralité", "Les résultats restituent les réponses reçues. Ils ne servent ni à noter individuellement des salarié·es, ni à désigner une personne."),
+            ("Neutralité", "Les résultats restituent les réponses reçues. Ils ne servent ni à noter individuellement des membres du personnel, ni à désigner une personne."),
             ("Usage responsable", "Le service ne doit pas être utilisé pour harceler, identifier ou surveiller des collègues, ni pour diffuser un lien hors du groupe concerné."),
         ),
     },
@@ -48,7 +48,7 @@ FOOTER_PAGES = {
         "intro": "Une question sur Bokebi, un signalement de sécurité ou une demande relative à tes données ?",
         "sections": (
             ("Nous écrire", "L'adresse de contact dédiée sera publiée ici avant l'ouverture publique. En attendant, utilise le canal par lequel l'équipe Bokebi t'a présenté le service."),
-            ("Urgence", "Bokebi n'est pas un service d'urgence. En cas de danger immédiat, contacte les services d'urgence ou les interlocuteurs compétents de ton pays."),
+            ("Urgence", "Bokebi n'est pas un service d'urgence. En cas de danger immédiat, contacte les services d'urgence ou les organismes compétents de ton pays."),
         ),
     },
 }
