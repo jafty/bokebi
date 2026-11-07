@@ -14,10 +14,10 @@
   <a class="primary-button" href="{% url 'take-survey' created.survey.id %}">Répondre aux questions</a>
 {% else %}
   <h1>Prépare ton lien à partager</h1>
-  <p>Commence par nommer ton équipe. Tu répondras ensuite aux cinq questions avant de partager le lien.</p>
+  <p>Nomme ton équipe, puis réponds aux cinq questions.</p>
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
   <form method="post">{% csrf_token %}
-    <div class="form-group"><label for="team-name">Nom de l'équipe ou du lieu de travail</label><p id="team-help" class="field-help">Ce nom sera visible par les participants. Il aide aussi Bokebi à traiter les demandes de contact. Choisis un nom que tes collègues reconnaîtront, sans nom de personne.</p><input name="team_name" type="text" id="team-name" maxlength="200" value="{{ team_name|default:'' }}" aria-describedby="team-help" required></div>
+    <div class="form-group"><label for="team-name">Nom de l'équipe ou du lieu de travail</label><p id="team-help" class="field-help">Visible par les participant·es et utilisé pour les demandes de contact. Choisis un nom reconnaissable, sans nom de personne.</p><input name="team_name" type="text" id="team-name" maxlength="200" value="{{ team_name|default:'' }}" aria-describedby="team-help" required></div>
     <div class="form-group"><label for="password">Mot de passe (facultatif)</label><p id="password-help" class="field-help">Il limite l'accès à l'enquête et aux résultats. Communique-le séparément du lien et choisis un mot de passe différent de tes mots de passe habituels.</p><input name="password" type="password" id="password" aria-describedby="password-help" autocomplete="new-password"></div>
     <p class="field-help">Une clé à conserver te sera donnée pour supprimer l'enquête.</p>
     <button class="primary-button" type="submit">Créer le lien</button>

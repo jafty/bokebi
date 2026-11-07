@@ -31,3 +31,19 @@ document.querySelectorAll('[data-share]').forEach(button => {
     }
   });
 });
+
+const contactSubmit = document.getElementById('contact-submit');
+if (contactSubmit) {
+  const choices = document.querySelectorAll('.contact-choice input');
+  const updateContactAction = () => {
+    contactSubmit.textContent = [...choices].some(choice => choice.checked)
+      ? 'Envoyer ma demande et passer au partage' : 'Passer au partage';
+  };
+  choices.forEach(choice => choice.addEventListener('change', updateContactAction));
+  updateContactAction();
+}
+const shareButton = document.querySelector('[data-share="share-message"]');
+const copyShare = document.getElementById('copy-share-message');
+if (shareButton && copyShare && navigator.share) {
+  copyShare.classList.replace('primary-button', 'text-link');
+}

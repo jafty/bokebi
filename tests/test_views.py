@@ -9,7 +9,7 @@ from contacts.models import ContactRequestRecord
 def test_home_and_create_pages_render(client):
     home = client.get(reverse("home"))
     assert home.status_code == client.get(reverse("create")).status_code == 200
-    assert "Ne reste pas seul." in home.content.decode()
+    assert "Ne reste pas seul·e." in home.content.decode()
     assert "Aucune réponse à rédiger" in home.content.decode()
     assert "Pas besoin de créer un compte" in home.content.decode()
     assert 'href="https://www.japhet-stmn.fr"' in home.content.decode()
@@ -166,7 +166,7 @@ def test_creator_answers_then_skips_contact_and_shares_protected_survey(client):
     response = client.get(response.url)
     assert response.status_code == 200
     assert take_url in response.content.decode()
-    assert "Une idée de message à adapter" in response.content.decode()
+    assert "Ton message" in response.content.decode()
     assert ContactRequestRecord.objects.count() == 0
 
 
@@ -190,7 +190,7 @@ def test_invalid_contact_preserves_preferences_and_offers_skip(client):
     assert response.status_code == 400
     assert "Indique une adresse e-mail valide" in response.content.decode()
     assert 'name="wants_colleagues" checked' in response.content.decode()
-    assert "Non merci, continuer" in response.content.decode()
+    assert "Valider et passer au partage" in response.content.decode()
     assert ContactRequestRecord.objects.count() == 0
 
 

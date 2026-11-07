@@ -10,13 +10,11 @@
       <label class="contact-choice"><input type="checkbox" name="wants_colleagues" {% if wants_colleagues %}checked{% endif %}> Être mis en relation avec des collègues qui en ont aussi fait la demande</label>
       <label class="contact-choice"><input type="checkbox" name="wants_organization" {% if wants_organization %}checked{% endif %}> Demander un accompagnement</label>
     </fieldset>
-    <p class="field-help">Bokebi pourra discuter avec toi d'un soutien syndical ou d'un autre accompagnement adapté. Une mise en relation n'est pas automatique.</p>
-    <p class="field-help">Pour traiter ta demande, l'équipe verra ton e-mail, tes choix et le nom du groupe « {{ survey.team_name }} ». Ces informations sont conservées séparément de tes réponses. L'équipe vérifiera les informations avant toute mise en relation.</p>
+    <p class="field-help">L'équipe verra ton e-mail, tes choix et le nom du groupe « {{ survey.team_name }} », séparément de tes réponses. Elle te contactera pour discuter de ta demande avant toute mise en relation ou accompagnement, notamment syndical.</p>
     {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
     <div class="form-group"><label for="email">Ton adresse e-mail</label><input type="email" name="email" id="email" autocomplete="email" value="{{ email|default:'' }}"><p class="field-help">À renseigner si tu coches au moins une option.</p></div>
-    <button type="submit" class="primary-button">Continuer</button>
+    <button type="submit" class="primary-button" id="contact-submit">Valider et passer au partage</button>
   </form>
-  <form method="post" action="{% url 'contact-opt-in' survey.id %}" class="skip-form">{% csrf_token %}<button class="text-link" type="submit">Non merci, continuer</button></form>
 {% else %}
   <p class="eyebrow">Enquête sur les conditions de travail</p>
   <h1>{{ survey.team_name }}</h1>
