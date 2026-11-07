@@ -1,8 +1,33 @@
-{% extends 'base.html' %}{% block content %}
-<section class="mb-20 mt-4"><h1 class="text-4xl md:text-5xl font-medium mb-6 leading-tight">Tu n'es peut-être pas seul.</h1><p class="text-xl md:text-2xl text-gray-700 max-w-2xl leading-relaxed mb-8">Un problème au travail ? Découvre anonymement si tes collègues vivent la même chose.</p><div class="mb-14"><a href="{% url 'create' %}" class="text-2xl action-link font-medium">Créer un sondage privé</a></div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-10 pt-10 border-t"><div><b class="eyebrow">01</b><h2 class="text-xl font-medium">Répondre</h2><p>Fais le point en quelques secondes, anonymement.</p></div><div><b class="eyebrow">02</b><h2 class="text-xl font-medium">Découvrir</h2><p>Vois si tes collègues vivent la même chose.</p></div><div><b class="eyebrow">03</b><h2 class="text-xl font-medium">Se regrouper</h2><p>Retrouvez-vous si vous souhaitez agir.</p></div></div></section>
-<section id="how-it-works" class="mb-20 pt-8 border-t"><h3 class="text-3xl font-medium mb-10">Comment ça marche ?</h3><div class="space-y-8">
-<div><h4 class="text-xl font-medium">1. Crée le sondage</h4><p class="text-gray-700 text-lg">Aucun compte nécessaire.</p></div><div><h4 class="text-xl font-medium">2. Réponds-y</h4><p class="text-gray-700 text-lg">Le questionnaire ne prend que quelques secondes et ne contient aucune réponse libre.</p></div><div><h4 class="text-xl font-medium">3. Partage-le avec tes collègues</h4><p class="text-gray-700 text-lg">Envoie le lien par le canal de ton choix.</p></div><div><h4 class="text-xl font-medium">4. Découvre les résultats</h4><p class="text-gray-700 text-lg">Ils apparaissent à partir de 3 réponses, pour éviter d'isoler la réponse d'un collègue.</p></div><div><h4 class="text-xl font-medium">5. Retrouvez-vous si vous souhaitez agir</h4><p class="text-gray-700 text-lg">Si plusieurs le souhaitent, vous pouvez demander à être mis en relation ou accompagnés.</p></div></div></section>
-<section class="mb-16 border-y py-12"><h3 class="text-2xl font-medium mb-6">Des règles simples, des faits concrets</h3><ul class="space-y-4 text-lg text-gray-700"><li>― Aucun compte utilisateur.</li><li>― Aucun nom, matricule ou réponse libre.</li><li>― Les coordonnées de contact sont stockées séparément des réponses au sondage.</li><li>― Les résultats ne sont visibles qu'à partir de 3 réponses.</li></ul></section>
-<section class="text-center mt-20 mb-12"><p class="text-xl text-gray-700 mb-8">Aucun engagement. Tu décides jusqu'où aller.</p><a href="{% url 'create' %}" class="text-3xl action-link font-medium pb-1">Créer un sondage privé</a></section>
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+  <h1>Ne reste pas seul.</h1>
+  <p class="hero-intro">Partage une courte enquête avec tes collègues pour faire le point sur vos conditions de travail.</p>
+  <a class="primary-button" href="{% url 'create' %}">Partager l'enquête</a>
+  <p class="hero-facts">5 questions. Aucune réponse à rédiger. Pas besoin de créer un compte.</p>
+  <p>Ton nom n'apparaît pas avec tes réponses.</p>
+  <p class="muted">Tu peux aussi demander à être mis en relation ou accompagné, si tu le souhaites.</p>
+</section>
+<section id="how-it-works" class="page-section">
+  <h2>Comment ça marche ?</h2>
+  <div class="steps">
+    <div><span class="step-number">01</span><h3>Prépare l'enquête</h3><p>Indique le nom de ton équipe et réponds aux cinq questions.</p></div>
+    <div><span class="step-number">02</span><h3>Partage le lien</h3><p>Envoie-le aux collègues de ton choix pour qu'ils puissent répondre.</p></div>
+    <div><span class="step-number">03</span><h3>Découvrez les résultats</h3><p>Les moyennes apparaissent à partir de trois participations.</p></div>
+  </div>
+</section>
+<section class="page-section questions-preview">
+  <h2>Que contient l'enquête ?</h2>
+  <p>Les mêmes cinq questions sont posées à chaque personne.</p>
+  <ol>{% for question in questions %}<li>{{ question }}</li>{% endfor %}</ol>
+</section>
+<section class="page-section privacy-summary">
+  <h2>Tes réponses et ta confidentialité</h2>
+  <p>Aucun nom ni e-mail n'est demandé avec les réponses. Les résultats affichent des moyennes à partir de trois participations.</p>
+  <p>Dans un petit groupe, quelqu'un peut malgré tout deviner une réponse, notamment en comparant les résultats au fil du temps.</p>
+  <p>Si tu demandes à être contacté, ton e-mail et le nom du groupe sont conservés séparément des réponses. Une personne de Bokebi les verra pour donner suite à ta demande.</p>
+  <p>Toute personne ayant le lien peut répondre et consulter les résultats disponibles, sauf si l'enquête est protégée par un mot de passe.</p>
+  <a class="text-link" href="{% url 'information-page' 'privacy' %}">En savoir plus sur la confidentialité</a>
+</section>
+<section class="closing-cta page-section"><p>Tu décides à qui partager l'enquête et si tu souhaites être contacté.</p><a class="primary-button" href="{% url 'create' %}">Partager l'enquête</a></section>
 {% endblock %}

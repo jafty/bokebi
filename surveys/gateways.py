@@ -5,9 +5,8 @@ from domain.entities import SurveyId
 from domain.ports import Clock, SecretGateway, TokenGateway
 
 class SecureTokenGateway(TokenGateway):
-    WORDS = ("ARBRE", "MATIN", "CHAISE", "ROUGE", "RIVIERE", "LUNE", "PIERRE", "NUAGE")
     def survey_id(self): return SurveyId(secrets.token_urlsafe(9))
-    def deletion_key(self): return " - ".join(secrets.choice(self.WORDS) for _ in range(4))
+    def deletion_key(self): return secrets.token_urlsafe(24)
 class DjangoSecretGateway(SecretGateway):
     def encode(self, secret): return make_password(secret)
     def matches(self, secret, encoded): return check_password(secret, encoded)

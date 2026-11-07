@@ -1,17 +1,18 @@
 {% extends 'base.html' %}
+{% block title %}Résultats | Bokebi{% endblock %}
 {% block content %}
-<section class="max-w-3xl mx-auto">
-  <div class="flex justify-between items-end mb-6 border-b pb-6"><div><div class="eyebrow">Résultats globaux</div><h1 class="text-3xl font-medium">{{ survey.team_name }}</h1></div></div>
+<section class="content-narrow">
+  <p class="eyebrow">Résultats de l'enquête</p><h1>{{ survey.team_name }}</h1>
   {% if result.unlocked %}
-    <span class="badge">Déverrouillé ({{ result.participation_count }} participations)</span>
-    <p class="text-gray-700 my-8 text-lg">Une note de 1 indique une situation dégradée et 5 une situation satisfaisante.</p>
-    <div class="space-y-8">{% for question, average in rows %}<div class="result-card {% if average < 2.5 %}result-negative{% elif average < 3.5 %}result-watch{% else %}result-positive{% endif %}"><p class="text-lg font-medium mb-3">{{ forloop.counter }}. {{ question }}</p><div class="flex items-center gap-4"><progress value="{{ average }}" max="5" aria-label="Note moyenne : {{ average }} sur 5"></progress><b class="text-xl">{{ average }}<small>/5</small></b></div><p class="result-label">{% if average < 2.5 %}Situation préoccupante{% elif average < 3.5 %}Point de vigilance{% else %}Situation plutôt positive{% endif %}</p></div>{% endfor %}</div>
-    <section class="analysis-box"><div class="eyebrow">Analyse des résultats</div><h2 class="text-2xl font-medium mt-2 mb-3">{% if overall_average < 2.5 %}Une situation qui appelle une attention rapide{% elif overall_average < 3.5 %}Des signaux à prendre au sérieux{% else %}Une situation globalement positive, à entretenir{% endif %}</h2><p class="text-gray-700">{% if overall_average < 2.5 %}Plusieurs réponses font ressortir des difficultés importantes. Cette synthèse peut servir de point de départ pour en parler collectivement et rechercher un accompagnement.{% elif overall_average < 3.5 %}Les réponses révèlent une situation contrastée et des sujets de vigilance. Partage le sondage pour consolider ce constat avant d'envisager la suite.{% else %}Les réponses sont globalement favorables. Les points moins bien évalués restent utiles pour identifier ce qui pourrait être amélioré collectivement.{% endif %}</p><p class="text-sm text-gray-700 mt-4">Si tu as laissé ton e-mail pour une mise en relation ou un accompagnement, l'équipe Bokebi te contactera sous 48 à 72 h.</p></section>
+    <p>{{ result.participation_count }} participations. Une note de 1 signifie « Pas du tout d'accord » et 5 « Totalement d'accord ».</p>
+    <div class="result-list">{% for question, average in rows %}<div class="result-item"><h2>{{ forloop.counter }}. {{ question }}</h2><p>Moyenne : <strong>{{ average }} / 5</strong></p><progress value="{{ average }}" max="5" aria-label="Note moyenne : {{ average }} sur 5"></progress></div>{% endfor %}</div>
+    <p>Ces réponses sont un point de départ pour discuter. Elles ne représentent pas nécessairement toute l'équipe.</p>
   {% else %}
-    <div class="text-center py-12"><h3 class="text-3xl font-medium mb-4">Résultats bientôt disponibles</h3><p class="text-5xl text-raspberry">{{ result.participation_count }} / 3</p><p class="mt-3">Les moyennes restent masquées jusqu'à trois participations afin de protéger l'anonymat.</p></div>
+    <h2>Résultats bientôt disponibles</h2><p>{{ result.participation_count }} participation{{ result.participation_count|pluralize }} sur 3 nécessaires pour afficher les moyennes.</p>
   {% endif %}
-  <div class="share-box"><h2 class="text-xl font-medium">Partage ce lien avec tes collègues</h2><p class="text-sm text-gray-700 mt-1 mb-4">Ce lien ouvre le sondage, pas tes réponses individuelles.</p><div class="copy-row"><input id="poll-link" value="{{ poll_url }}" readonly aria-label="Lien du sondage"><button type="button" data-copy="poll-link">Copier</button></div><button type="button" class="share-button" data-share="{{ poll_url }}" data-share-title="Sondage confidentiel Bokebi">Partager via WhatsApp, SMS…</button><p id="copy-message" class="copy-message" role="status" hidden>✓ Lien copié !</p></div>
-  {% if result.unlocked %}<div class="share-box secondary-share"><h2 class="text-xl font-medium">Partager cette synthèse</h2><p class="text-sm text-gray-600 mt-1 mb-4">Toute personne possédant ce lien pourra consulter les résultats agrégés et participer au sondage.</p><div class="copy-row"><input id="results-link" value="{{ results_url }}" readonly aria-label="Lien de la synthèse"><button type="button" data-copy="results-link">Copier</button></div></div>{% endif %}
-  <p class="text-center mt-8"><a class="action-link text-lg" href="{% url 'take-survey' survey.id %}">Participer à ce sondage</a></p><p class="mt-10 text-sm"><a href="{% url 'delete-survey' survey.id %}">Supprimer ce sondage</a></p>
+  <p class="field-help">Dans un petit groupe, quelqu'un peut parfois deviner une réponse, notamment en comparant les moyennes au fil du temps. <a class="text-link" href="{% url 'information-page' 'privacy' %}">En savoir plus</a></p>
+  <section class="page-section"><h2>Et ensuite ?</h2><p>Tu peux partager l'enquête, parler de ces sujets avec des collègues de confiance ou chercher un accompagnement syndical. Choisissez ensemble un moyen d'échange qui vous convient.</p><a class="primary-button" href="{% url 'share-survey' survey.id %}">Partager l'enquête</a></section>
+  <p><a class="text-link" href="{% url 'take-survey' survey.id %}">Répondre à cette enquête</a></p>
+  <p class="field-help"><a class="text-link" href="{% url 'delete-survey' survey.id %}">Supprimer cette enquête</a></p>
 </section>
 {% endblock %}

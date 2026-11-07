@@ -7,3 +7,5 @@ staticfiles/
 db.sqlite3
 contacts.sqlite3
 .venv/
+
+mutants/

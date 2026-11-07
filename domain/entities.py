@@ -33,9 +33,12 @@ class ContactRequest:
     group_label: str
 
     def __post_init__(self) -> None:
-        if not self.email.strip() or "@" not in self.email:
-            raise ValueError("A valid email is required")
-        if not (self.wants_colleagues or self.wants_organization):
-            raise ValueError("At least one contact option is required")
-        if not self.group_label.strip():
-            raise ValueError("A group label is required")
+        validate_contact_request(self.email, self.wants_colleagues, self.wants_organization, self.group_label)
+
+def validate_contact_request(email: str, wants_colleagues: bool, wants_organization: bool, group_label: str) -> None:
+    if not email.strip() or "@" not in email:
+        raise ValueError("A valid email is required")
+    if not (wants_colleagues or wants_organization):
+        raise ValueError("At least one contact option is required")
+    if not group_label.strip():
+        raise ValueError("A group label is required")

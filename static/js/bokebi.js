@@ -1,4 +1,33 @@
-document.querySelectorAll('.contact-choice input').forEach(box=>box.addEventListener('change',()=>{const selected=[...document.querySelectorAll('.contact-choice input')].some(x=>x.checked);const field=document.querySelector('#email-field');field.hidden=!selected;field.querySelector('input').required=selected}));
-async function copyLink(id){const input=document.getElementById(id);try{await navigator.clipboard.writeText(input.value)}catch{input.select();document.execCommand('copy')}const message=document.getElementById('copy-message');if(message){message.hidden=false;setTimeout(()=>message.hidden=true,3000)}}
-document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',()=>copyLink(button.dataset.copy)));
-document.querySelectorAll('[data-share]').forEach(button=>button.addEventListener('click',async()=>{if(navigator.share){try{await navigator.share({title:button.dataset.shareTitle||'Bokebi',text:'Fais le point anonymement sur nos conditions de travail.',url:button.dataset.share})}catch(error){if(error.name!=='AbortError')copyLink('poll-link')}}else copyLink('poll-link')}));
+async function copyText(id, button) {
+  const input = document.getElementById(id);
+  const container = button.closest('.form-group, .notice-block') || button.parentElement;
+  const message = container.querySelector('.copy-message');
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(input.value);
+    } else {
+      input.focus();
+      input.select();
+      if (!document.execCommand('copy')) throw new Error('copy failed');
+    }
+    if (message) message.textContent = 'Copié.';
+  } catch (error) {
+    if (message) message.textContent = 'Copie impossible. Sélectionne le texte pour le copier.';
+    input.focus();
+    input.select();
+  }
+}
+document.querySelectorAll('[data-copy]').forEach(button => {
+  button.addEventListener('click', () => copyText(button.dataset.copy, button));
+});
+document.querySelectorAll('[data-share]').forEach(button => {
+  if (!navigator.share) return;
+  button.hidden = false;
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.share({text: document.getElementById(button.dataset.share).value});
+    } catch (error) {
+      if (error.name !== 'AbortError') copyText(button.dataset.share, button);
+    }
+  });
+});

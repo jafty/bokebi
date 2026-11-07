@@ -9,7 +9,9 @@ from contacts.models import ContactRequestRecord
 def test_home_and_create_pages_render(client):
     home = client.get(reverse("home"))
     assert home.status_code == client.get(reverse("create")).status_code == 200
-    assert home.content.decode().count("Créer un sondage privé") == 3
+    assert "Ne reste pas seul." in home.content.decode()
+    assert "Aucune réponse à rédiger" in home.content.decode()
+    assert "Pas besoin de créer un compte" in home.content.decode()
     assert 'href="https://www.japhet-stmn.fr"' in home.content.decode()
     assert "Conçu par un développeur web indépendant" in home.content.decode()
 
@@ -79,7 +81,7 @@ def test_footer_information_pages_render(client, page):
 
 
 @pytest.mark.django_db
-def test_results_invite_uses_poll_url_and_unlocked_results_have_analysis(client):
+def test_unlocked_results_show_averages_without_diagnosis(client):
     survey = SurveyRecord.objects.create(public_id="results", team_name="Results", deletion_key_hash=make_password("delete"), created_at="2026-01-01T00:00:00Z")
     for answers in ([1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3]):
         ParticipationRecord.objects.create(survey=survey, answers=answers)
@@ -87,9 +89,10 @@ def test_results_invite_uses_poll_url_and_unlocked_results_have_analysis(client)
     response = client.get(reverse("results", args=[survey.public_id]))
     content = response.content.decode()
     assert response.status_code == 200
-    assert f'/s/{survey.public_id}/"' in content
-    assert "Analyse des résultats" in content
-    assert "Situation préoccupante" in content
+    assert f'/s/{survey.public_id}/share/' in content
+    assert "Moyenne" in content
+    assert "Analyse des résultats" not in content
+    assert "Situation préoccupante" not in content
 
 
 @pytest.mark.django_db
@@ -101,7 +104,7 @@ def test_legal_page_displays_publisher_contact_host_and_privacy_details(client):
     assert "contact@bokebi.org" in content
     assert "Railway Corp." in content
     assert 'href="https://railway.app"' in content
-    assert "strictement anonymisées" in content
+    assert "strictement anonymisées" not in content
 
 
 @pytest.mark.django_db(databases=["default", "contacts"])
@@ -144,3 +147,64 @@ def test_contact_opt_in_stores_group_label_but_no_survey_identifier(client):
     contact = ContactRequestRecord.objects.get()
     assert contact.group_label == "Example company"
     assert not hasattr(contact, "survey_id")
+
+
+@pytest.mark.django_db(databases=["default", "contacts"])
+def test_creator_answers_then_skips_contact_and_shares_protected_survey(client):
+    response = client.post(reverse("create"), {"team_name": "Cuisine", "password": "test-password"})
+    assert response.status_code == 200
+    survey = SurveyRecord.objects.get(team_name="Cuisine")
+    assert "Garde cette clé de suppression" in response.content.decode()
+    take_url = reverse("take-survey", args=[survey.public_id])
+    assert take_url in response.content.decode()
+    assert client.get(take_url).status_code == 200
+    response = client.post(take_url, {f"q{i}": "3" for i in range(1, 6)})
+    assert response.status_code == 200
+    assert "Tes réponses ont été enregistrées" in response.content.decode()
+    response = client.post(reverse("contact-opt-in", args=[survey.public_id]), {})
+    assert response.url == reverse("share-survey", args=[survey.public_id])
+    response = client.get(response.url)
+    assert response.status_code == 200
+    assert take_url in response.content.decode()
+    assert "Une idée de message à adapter" in response.content.decode()
+    assert ContactRequestRecord.objects.count() == 0
+
+
+@pytest.mark.django_db(databases=["default", "contacts"])
+def test_contact_for_protected_survey_requires_access(client, protected_survey):
+    url = reverse("contact-opt-in", args=[protected_survey.public_id])
+    response = client.post(url, {"wants_colleagues": "on", "email": "person@example.org"})
+    assert response.status_code == 403
+    assert ContactRequestRecord.objects.count() == 0
+    take_url = reverse("take-survey", args=[protected_survey.public_id])
+    client.post(take_url, {"survey_password": "open sesame"})
+    response = client.post(url, {"wants_colleagues": "on", "email": "person@example.org"})
+    assert response.url == reverse("share-survey", args=[protected_survey.public_id])
+    assert ContactRequestRecord.objects.get().email == "person@example.org"
+
+
+@pytest.mark.django_db(databases=["default", "contacts"])
+def test_invalid_contact_preserves_preferences_and_offers_skip(client):
+    survey = SurveyRecord.objects.create(public_id="contact", team_name="Cuisine", deletion_key_hash=make_password("delete"), created_at="2026-01-01T00:00:00Z")
+    response = client.post(reverse("contact-opt-in", args=[survey.public_id]), {"wants_colleagues": "on", "email": "bad"})
+    assert response.status_code == 400
+    assert "Indique une adresse e-mail valide" in response.content.decode()
+    assert 'name="wants_colleagues" checked' in response.content.decode()
+    assert "Non merci, continuer" in response.content.decode()
+    assert ContactRequestRecord.objects.count() == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("deletion_key", ["ARBRE - MATIN - CHAISE - ROUGE", "long-generated-token_0123456789"])
+def test_old_and_new_deletion_secrets_work(client, deletion_key):
+    survey = SurveyRecord.objects.create(public_id="deletable", team_name="Cuisine", deletion_key_hash=make_password(deletion_key), created_at="2026-01-01T00:00:00Z")
+    response = client.post(reverse("delete-survey", args=[survey.public_id]), {"deletion_key": deletion_key})
+    assert response.status_code == 302
+    assert not SurveyRecord.objects.filter(public_id=survey.public_id).exists()
+
+
+def test_generated_deletion_key_has_192_bits_of_randomness():
+    import base64
+    from surveys.gateways import SecureTokenGateway
+    token = SecureTokenGateway().deletion_key()
+    assert len(base64.urlsafe_b64decode(token + "==")) == 24

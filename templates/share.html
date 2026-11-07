@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Partager l'enquête | Bokebi{% endblock %}
+{% block content %}
+<section class="content-narrow">
+  <h1>Partage l'enquête</h1>
+  <p>Envoie le lien aux collègues de ton choix. Ils pourront répondre aux mêmes questions.</p>
+  <div class="form-group"><label for="poll-link">Lien de l'enquête</label><div class="copy-row"><input type="text" id="poll-link" value="{{ poll_url }}" readonly><button type="button" data-copy="poll-link">Copier le lien</button></div><p class="copy-message" role="status" aria-live="polite"></p></div>
+  <div class="form-group"><label for="share-message">Une idée de message à adapter</label><textarea id="share-message" rows="5">Salut ! J'ai trouvé cette courte enquête pour faire le point sur nos conditions de travail. Il y a 5 questions, et aucun nom n'est demandé avec les réponses. Si tu veux y répondre : {{ poll_url }}</textarea><button type="button" class="secondary-button" data-copy="share-message">Copier le message</button><p class="copy-message" role="status" aria-live="polite"></p></div>
+  <button type="button" class="primary-button" data-share="share-message" hidden>Partager le message</button>
+  <p class="field-help">Si l'enquête est protégée, pense à communiquer le mot de passe séparément.</p>
+  <p class="next-link"><a class="text-link" href="{% url 'results' survey.id %}">Voir les résultats</a></p>
+</section>
+{% endblock %}
