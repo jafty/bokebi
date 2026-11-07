@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% block body_class %}home-page{% endblock %}
-{% block nav_action %}{% endblock %}
-{% block content %}
+{% block header %}
+<header class="home-intro">
+{% include 'navigation.html' with home=True %}
 <section class="hero">
   <h1>Ne reste pas seul.</h1>
   <p class="hero-intro">Partage une courte enquête avec tes collègues pour faire le point sur vos conditions de travail.</p>
@@ -9,6 +10,9 @@
   <p class="hero-facts">5 questions. Aucune réponse à rédiger. Pas besoin de créer un compte.</p>
   <p>Ton nom n'apparaît pas avec tes réponses.</p>
 </section>
+</header>
+{% endblock %}
+{% block content %}
 <section id="how-it-works" class="page-section">
   <h2>Comment ça marche ?</h2>
   <div class="steps">
