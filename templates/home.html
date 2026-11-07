@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% block body_class %}home-page{% endblock %}
+{% block nav_action %}{% endblock %}
 {% block content %}
 <section class="hero">
   <h1>Ne reste pas seul.</h1>
@@ -6,7 +8,6 @@
   <a class="primary-button" href="{% url 'create' %}">Partager l'enquête</a>
   <p class="hero-facts">5 questions. Aucune réponse à rédiger. Pas besoin de créer un compte.</p>
   <p>Ton nom n'apparaît pas avec tes réponses.</p>
-  <p class="muted">Tu peux aussi demander à être mis en relation ou accompagné, si tu le souhaites.</p>
 </section>
 <section id="how-it-works" class="page-section">
   <h2>Comment ça marche ?</h2>
@@ -15,6 +16,7 @@
     <div><span class="step-number">02</span><h3>Partage le lien</h3><p>Envoie-le aux collègues de ton choix pour qu'ils puissent répondre.</p></div>
     <div><span class="step-number">03</span><h3>Découvrez les résultats</h3><p>Les moyennes apparaissent à partir de trois participations.</p></div>
   </div>
+  <p>Tu peux aussi demander à être mis en relation ou accompagné, si tu le souhaites.</p>
 </section>
 <section class="page-section questions-preview">
   <h2>Que contient l'enquête ?</h2>
