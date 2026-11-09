@@ -11,7 +11,7 @@ def test_home_and_create_pages_render(client):
     assert home.status_code == client.get(reverse("create")).status_code == 200
     assert "Ne reste pas seul·e." in home.content.decode()
     assert "Aucune réponse à rédiger" in home.content.decode()
-    assert "Pas besoin de créer un compte" in home.content.decode()
+    assert "Pas besoin de créer de compte" in home.content.decode()
     assert 'href="https://www.japhet-stmn.fr"' in home.content.decode()
     assert "Conçu par un développeur web indépendant" in home.content.decode()
 

@@ -5,9 +5,9 @@
 {% include 'navigation.html' with home=True %}
 <section class="hero">
   <h1>Ne reste pas seul·e.</h1>
-  <p class="hero-intro">Partage une courte enquête avec tes collègues pour faire le point sur vos conditions de travail.</p>
+  <p class="hero-intro">Fais le point avec tes collègues sur vos conditions de travail. Vous pourrez agir ensemble si vous le souhaitez.</p>
   <a class="primary-button" href="{% url 'create' %}">Partager l'enquête</a>
-  <p class="hero-facts">5 questions. Aucune réponse à rédiger. Pas besoin de créer un compte.</p>
+  <p class="hero-facts">5 questions. Aucune réponse à rédiger. Pas besoin de créer de compte.</p>
   <p>Ton nom n'apparaît pas avec tes réponses.</p>
 </section>
 </header>
@@ -17,10 +17,17 @@
   <h2>Comment ça marche ?</h2>
   <div class="steps">
     <div><span class="step-number">01</span><h3>Prépare l'enquête</h3><p>Indique le nom de ton équipe et réponds aux cinq questions.</p></div>
-    <div><span class="step-number">02</span><h3>Partage le lien</h3><p>Envoie-le aux collègues de ton choix pour qu'ils puissent répondre.</p></div>
-    <div><span class="step-number">03</span><h3>Découvrez les résultats</h3><p>Les moyennes apparaissent à partir de trois participations.</p></div>
+    <div><span class="step-number">02</span><h3>Partage le lien</h3><p>Envoie-le aux collègues de ton choix. Ils et elles peuvent répondre sans donner leur nom.</p></div>
+    <div><span class="step-number">03</span><h3>Découvrez les résultats</h3><p>À partir de trois participations, vous pouvez consulter les moyennes.</p></div>
   </div>
-  <p>Tu peux aussi demander à être mis en relation ou accompagné, si tu le souhaites.</p>
+</section>
+<section class="page-section action-intro">
+  <h2>Envie d'agir ?</h2>
+  <p>Les résultats peuvent vous aider à identifier des difficultés communes et à envisager une suite : en discuter, formuler des demandes ou organiser une action collective dans votre établissement.</p>
+  <h3>Entrer en contact</h3>
+  <p>Après avoir répondu, tu peux demander à Bokebi de te contacter pour discuter d'une mise en relation avec des collègues qui le souhaitent aussi, ou d'un accompagnement syndical. C'est facultatif.</p>
+  <h3>Décider ensemble</h3>
+  <p>Une action collective peut prendre plusieurs formes, jusqu'à la grève. Avec ou sans syndicat, ce sont les salarié·es concerné·es qui décident de ce qu'ils et elles souhaitent faire.</p>
 </section>
 <section class="page-section questions-preview">
   <h2>Que contient l'enquête ?</h2>
@@ -29,11 +36,11 @@
 </section>
 <section class="page-section privacy-summary">
   <h2>Tes réponses et ta confidentialité</h2>
-  <p>Aucun nom ni e-mail n'est demandé avec les réponses. Les résultats affichent des moyennes à partir de trois participations.</p>
-  <p>Dans un petit groupe, quelqu'un peut malgré tout deviner une réponse, notamment en comparant les résultats au fil du temps.</p>
-  <p>Si tu demandes à être contacté, ton e-mail et le nom du groupe sont conservés séparément des réponses. Une personne de Bokebi les verra pour donner suite à ta demande.</p>
+  <p>Aucun nom ni adresse e-mail n'est demandé avec les réponses. Les résultats affichent des moyennes à partir de trois participations.</p>
+  <p>Dans une petite équipe, quelqu'un peut malgré tout parfois deviner une réponse, notamment en comparant les résultats au fil du temps.</p>
+  <p>Si tu demandes à être contacté·e, ton adresse e-mail, tes choix et le nom du groupe sont conservés séparément des réponses. L'équipe Bokebi les consulte pour donner suite à ta demande.</p>
   <p>Toute personne ayant le lien peut répondre et consulter les résultats disponibles, sauf si l'enquête est protégée par un mot de passe.</p>
   <a class="text-link" href="{% url 'information-page' 'privacy' %}">En savoir plus sur la confidentialité</a>
 </section>
-<section class="closing-cta page-section"><p>Tu décides à qui partager l'enquête et si tu souhaites être contacté.</p><a class="primary-button" href="{% url 'create' %}">Partager l'enquête</a></section>
+<section class="closing-cta page-section"><p>Faire le point ensemble peut aider à ne plus rester seul·e face aux mêmes difficultés.</p><a class="primary-button" href="{% url 'create' %}">Partager l'enquête</a></section>
 {% endblock %}
