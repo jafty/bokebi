@@ -19,7 +19,7 @@ FOOTER_PAGES = {
         "intro": "Les informations essentielles sur l'édition et l'utilisation de Bokebi.",
         "sections": (
             ("Éditeur du site", "Le site Bokebi est édité à titre non professionnel par un particulier au sens de l'article 6, III, 2 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique (LCEN). Les coordonnées personnelles de l'auteur ont été transmises à l'hébergeur du site."),
-            ("Contact", "Pour toute question ou demande de modération : contact@bokebi.org"),
+            ("Contact", "Pour toute question ou demande de modération : entraide@bokebi.fr"),
             ("Hébergement", "Le site est hébergé par :\nRailway Corp.\n548 Market St, Suite 500\nSan Francisco, CA 94104, États-Unis\nSite web : https://railway.app"),
             ("Données personnelles", "Aucun nom ni e-mail n'est demandé avec les réponses. Les coordonnées fournies pour une demande de contact sont conservées séparément. Dans un petit groupe, il peut néanmoins être possible de deviner une réponse."),
         ),

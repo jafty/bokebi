@@ -101,7 +101,7 @@ def test_legal_page_displays_publisher_contact_host_and_privacy_details(client):
 
     content = response.content.decode()
     assert "édité à titre non professionnel par un particulier" in content
-    assert "contact@bokebi.org" in content
+    assert "entraide@bokebi.fr" in content
     assert "Railway Corp." in content
     assert 'href="https://railway.app"' in content
     assert "strictement anonymisées" not in content
