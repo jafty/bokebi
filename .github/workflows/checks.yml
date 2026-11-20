@@ -1,0 +1,62 @@
+name: Checks
+
+on: [push, pull_request]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-only-bokebi-secret
+      DATABASE_URL: postgresql://bokebi:ci-password@127.0.0.1:5432/surveys
+      CONTACT_DATABASE_URL: postgresql://bokebi:ci-password@127.0.0.1:5433/contacts
+    services:
+      surveys:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: surveys
+          POSTGRES_USER: bokebi
+          POSTGRES_PASSWORD: ci-password
+        ports:
+          - 5432:5432
+        options: --health-cmd "pg_isready -U bokebi -d surveys" --health-interval 5s --health-timeout 5s --health-retries 10
+      contacts:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: contacts
+          POSTGRES_USER: bokebi
+          POSTGRES_PASSWORD: ci-password
+        ports:
+          - 5433:5432
+        options: --health-cmd "pg_isready -U bokebi -d contacts" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: pip install -r requirements-dev.txt
+      - run: python manage.py makemigrations --check --dry-run
+      - run: |
+          coverage run -m pytest -q
+          coverage report
+      - run: |
+          node --test --experimental-test-coverage --test-coverage-include='static/js/*' \
+            --test-coverage-lines=100 --test-coverage-functions=100 --test-coverage-branches=100 \
+            tests/frontend.test.mjs
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.62.1
+          npx playwright install --with-deps chromium
+      - run: |
+          python manage.py check_legacy_bokebi
+          python manage.py migrate --noinput
+          python manage.py migrate --database=contacts --noinput
+          python manage.py collectstatic --noinput
+          gunicorn config.wsgi:application --bind 127.0.0.1:8000 --workers 2 &
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8000/ >/dev/null; then break; fi
+            sleep 1
+          done
+          node --test tests/browser/journeys.test.mjs

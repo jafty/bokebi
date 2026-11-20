@@ -1,9 +1,32 @@
-{% load static %}<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{% block title %}Bokebi | Enquête sur les conditions de travail{% endblock %}</title>
-<link rel="stylesheet" href="{% static 'css/bokebi.css' %}"></head>
-<body class="{% block body_class %}{% endblock %}"><div class="site-container">
-{% block header %}{% include 'navigation.html' %}{% endblock %}
-<main>{% block content %}{% endblock %}</main></div>
-<footer class="site-footer"><div class="footer-inner"><div><a class="footer-brand" href="{% url 'home' %}">Bokebi.</a><p>Une enquête pour faire le point sur les conditions de travail.</p></div><nav aria-label="Informations"><a href="{% url 'information-page' 'legal' %}">Mentions légales</a><a href="{% url 'information-page' 'privacy' %}">Confidentialité et sécurité</a><a href="{% url 'information-page' 'ethics' %}">Charte éthique</a><a href="{% url 'information-page' 'contact' %}">Contact</a></nav></div><div class="footer-credit">© 2026 Bokebi. <a href="https://www.japhet-stmn.fr" target="_blank" rel="noopener noreferrer">Conçu par un développeur web indépendant</a></div></footer>
-<script src="{% static 'js/bokebi.js' %}" defer></script></body></html>
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Bokebi | De l’aide au travail{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/bokebi.css' %}">
+  <script type="module" src="{% static 'js/bokebi.mjs' %}"></script>
+</head>
+<body>
+  <header class="site-header shell">
+    <a class="wordmark" href="{% url 'home' %}">Bokebi.</a>
+    <a href="{% url 'information-page' 'privacy' %}">Confidentialité</a>
+  </header>
+  <main class="shell">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <span>Bokebi. Initiative indépendante.</span>
+      <nav aria-label="Informations">
+        <a href="{% url 'information-page' 'legal' %}">Mentions légales</a>
+        <a href="{% url 'information-page' 'privacy' %}">Confidentialité</a>
+        <a href="{% url 'information-page' 'ethics' %}">Charte éthique</a>
+        <a href="{% url 'information-page' 'contact' %}">Contact</a>
+      </nav>
+      <a href="https://www.japhet-stmn.fr" target="_blank" rel="noopener">Conçu par un développeur web indépendant</a>
+    </div>
+  </footer>
+</body>
+</html>

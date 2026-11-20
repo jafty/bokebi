@@ -41,3 +41,15 @@ def test_brevo_backend_honors_fail_silently(settings):
         ])
 
     assert sent == 0
+
+
+def test_brevo_backend_propagates_failure_and_handles_empty_batch(settings):
+    import pytest
+
+    settings.BREVO_SENDER_EMAIL = "verified@example.com"
+    assert BrevoEmailBackend().send_messages([]) == 0
+    with patch("contacts.email_backend.urlopen", side_effect=TimeoutError):
+        with pytest.raises(TimeoutError):
+            BrevoEmailBackend().send_messages([
+                EmailMessage("Subject", "Body", None, ["staff@example.com"]),
+            ])

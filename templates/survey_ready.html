@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Lien de partage prêt | Bokebi{% endblock %}
+{% block content %}
+<section class="prose">
+  <h1>Ton lien est prêt</h1>
+  {% include 'components/threshold.html' %}
+  {% include 'components/share.html' %}
+  <div class="section">
+    <h2>Retrouver les résultats</h2>
+    <p>Ajoute la page des résultats à tes favoris pour y revenir plus tard.</p>
+    <a class="action" href="{% url 'results' survey.id %}">Voir les résultats</a>
+  </div>
+  <div class="section">
+    <h2>Ta clé de suppression</h2>
+    <p>Garde cette clé pour toi. Elle permet de supprimer le sondage et ne sera plus disponible ici après expiration de cette page.</p>
+    <p><code class="secret">{{ deletion_key }}</code></p>
+    <a href="{% url 'delete-survey' survey.id %}">Supprimer ce sondage</a>
+  </div>
+</section>
+{% endblock %}

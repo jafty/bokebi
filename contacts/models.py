@@ -1,16 +1,30 @@
 from django.db import models
 
-class ContactRequestRecord(models.Model):
+from domain.entities import HelpStatus
+
+
+STATUS_CHOICES = (
+    (HelpStatus.NEW, "Nouveau"),
+    (HelpStatus.CONTACTED, "Contacté"),
+    (HelpStatus.IN_PROGRESS, "En cours"),
+    (HelpStatus.CLOSED, "Clos"),
+)
+
+
+class HelpRequestRecord(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False)
     email = models.EmailField()
-    wants_colleagues = models.BooleanField(default=False)
-    wants_organization = models.BooleanField(default=False)
-    group_label = models.CharField(max_length=200)
-    created_at = models.DateTimeField(auto_now_add=True)
-    contacted_at = models.DateTimeField(null=True, blank=True)
+    situations = models.JSONField(default=list)
+    survey_id = models.CharField(max_length=32, db_index=True)
+    from_survey = models.BooleanField()
+    created_at = models.DateTimeField()
+    status = models.CharField(max_length=16, default=HelpStatus.NEW, choices=STATUS_CHOICES)
+    contacted_at = models.DateTimeField(null=True)
+    closed_at = models.DateTimeField(null=True, db_index=True)
+    notification_due_at = models.DateTimeField(null=True, db_index=True)
 
     class Meta:
-        app_label = "contacts"
-        ordering = ("-created_at",)
+        ordering = ("created_at",)
 
     def __str__(self):
-        return self.email
+        return f"Demande {self.pk}"

@@ -1,44 +1,27 @@
-# Railway deployment plan
+# Déploiement Railway
 
-## Prerequisites
+## Préparer les services
 
-Create a Railway project, connect the Git repository, and provision **two** managed PostgreSQL services: `bokebi-data` for surveys/answers and `bokebi-contacts` for contact requests. Keeping two credentials and databases is a required anonymity control, not an optional scaling choice.
+Configurer deux services PostgreSQL privés pour les données de sondage et les demandes d’aide. Le service web utilise les variables suivantes.
 
-## Configuration
+- `DATABASE_URL` et `CONTACT_DATABASE_URL` pointent vers les deux bases.
+- `SECRET_KEY`, `ALLOWED_HOSTS` et `CSRF_TRUSTED_ORIGINS` correspondent au déploiement HTTPS avec `DEBUG=0`.
+- `BOKEBI_PUBLIC_URL` contient l’origine HTTPS utilisée dans les liens d’alerte.
+- `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` et `CONTACT_NOTIFICATION_RECIPIENTS` configurent les alertes. Le corps du message contient uniquement un lien vers la file admin. L’équipe se charge ensuite de la réponse depuis la boîte `entraide@bokebi.fr`.
 
-1. Add an application service from the repository. Railway detects the root `Dockerfile`.
-2. Set `DATABASE_URL` to the private connection URL of `bokebi-data`.
-3. Set `CONTACT_DATABASE_URL` to the private connection URL of `bokebi-contacts`.
-4. Generate a long random `SECRET_KEY`; set `DEBUG=0`.
-5. Set `ALLOWED_HOSTS` to the Railway hostname and custom domain, comma-separated.
-6. Set `CSRF_TRUSTED_ORIGINS` to each public HTTPS origin.
-7. Do not expose either PostgreSQL service publicly. Limit Railway project access and rotate credentials after staff changes.
-8. Configure `BREVO_API_KEY`, a verified `BREVO_SENDER_EMAIL`, and `CONTACT_NOTIFICATION_RECIPIENTS` if operators should be notified of new contact requests. Notifications contain no submitter data; operators retrieve it from the authenticated admin.
+## Bascule du parcours historique
 
-## Build and release
+1. Avant la bascule, suspendre les écritures de l’ancien service. Sauvegarder séparément les deux bases, puis exécuter `python manage.py check_legacy_bokebi`. Si une table historique contient des lignes, interrompre la bascule et décider de leur traitement.
+2. Démarrer le service web. Son point d’entrée vérifie de nouveau les bases, migre chaque base séparément et collecte les fichiers statiques. Les migrations vérifient également que les tables historiques concernées sont vides avant de les retirer.
+3. Configurer un service de maintenance Railway depuis le même dépôt, avec `/railway.maintenance.toml` comme fichier de configuration. Lui donner les mêmes accès de base et paramètres de notification. La tâche `python manage.py maintain_bokebi` s’exécute toutes les cinq minutes et termine ensuite. Activer ce service une fois les migrations web terminées.
+4. Créer un compte admin avec `python manage.py createsuperuser`, puis attribuer à l’équipe les permissions de lecture des sondages et de lecture et changement des demandes. Définir la durée effective de conservation des sauvegardes et des e-mails avant publication.
 
-The image installs pinned dependencies as an unprivileged user. `entrypoint.sh` migrates the default database, migrates the isolated contacts database, collects static assets, and then executes Gunicorn. Railway injects `PORT`; Gunicorn defaults to 8000 locally.
+## Vérifier avant l’ouverture
 
-After the first deployment:
+1. Envoyer une demande de bout en bout. Vérifier l’alerte, l’accès à la file, la réponse depuis `entraide@bokebi.fr`, puis les actions de suivi de statut. Vérifier qu’une demande nouvelle âgée de plus de 24 heures est signalée en retard et que les week-ends et jours fériés sont couverts par l’équipe.
+2. Tester le sondage et ses résultats à un, deux et trois votes dans des sessions différentes. Vérifier le brouillon WhatsApp sur smartphone, puis supprimer le sondage de test avec sa clé.
+3. Vérifier dans les logs Railway une exécution réussie de la tâche et, sur un dossier de test clos depuis 30 jours, l’effacement de la demande. Vérifier que les agrégats de sondage restent disponibles.
 
-1. Inspect logs and confirm both migration commands succeed against different hosts/databases.
-2. Open `/`, create a survey, retain its deletion phrase, and submit three test participations.
-3. Confirm results are locked at one/two and unlocked at three.
-4. Submit a contact opt-in and inspect only the contacts database: it may contain the disclosed group label, but it must contain no survey/participation identifiers or answers.
-5. Delete the test survey with its phrase.
-6. Configure health monitoring on `/` and backups/retention independently for both databases.
-7. Run `python manage.py createsuperuser`, sign in at `/admin/`, and confirm that the contact-request queue is visible only after authentication.
+## Retour arrière
 
-## Local parity
-
-Copy `.env.example` to `.env`, generate independent random values for
-`SECRET_KEY`, `SURVEY_DB_PASSWORD`, and `CONTACT_DB_PASSWORD`, and then run
-`docker compose up --build`. The Compose file deliberately fails fast when any
-of these values is absent. Compose starts the application and two separate
-PostgreSQL containers. Run tests independently with
-`docker compose run --rm web pytest -q`. Never commit `.env`; only the empty
-`.env.example` belongs in source control.
-
-## Rollback
-
-Use Railway's previous deployment rollback for application failures. Before destructive schema changes, take both database backups. Roll back each database only with its own backup; never merge or export the two datasets into a shared analytical store.
+Si une erreur bloque la bascule avant toute saisie sur le nouveau parcours, remettre l’ancien service avec les deux sauvegardes correspondantes. Après les premières demandes réelles, privilégier une correction sur la nouvelle version en conservant les nouveaux enregistrements. Toute restauration des bases s’effectue séparément.

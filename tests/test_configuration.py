@@ -31,3 +31,33 @@ def test_email_uses_brevo_api_backend_by_default() -> None:
 
     assert 'os.getenv("EMAIL_BACKEND", "contacts.email_backend.BrevoEmailBackend")' in settings_source
     assert 'os.getenv("EMAIL_TIMEOUT", "10")' in settings_source
+
+
+def test_missing_secret_fails_at_startup(monkeypatch):
+    import runpy
+
+    import pytest
+    from django.core.exceptions import ImproperlyConfigured
+
+    monkeypatch.delenv("SECRET_KEY", raising=False)
+    with pytest.raises(ImproperlyConfigured, match="SECRET_KEY"):
+        runpy.run_path("config/settings.py")
+
+
+def test_wsgi_and_management_entrypoints(monkeypatch):
+    import runpy
+    import sys
+
+    from config.wsgi import application
+
+    assert callable(application)
+    monkeypatch.setattr(sys, "argv", ["manage.py", "check"])
+    runpy.run_path("manage.py", run_name="__main__")
+
+
+def test_importing_manage_does_not_execute_a_command(monkeypatch):
+    import runpy
+    import sys
+
+    monkeypatch.setattr(sys, "argv", ["manage.py", "invalid-command"])
+    assert runpy.run_path("manage.py")["__name__"] != "__main__"

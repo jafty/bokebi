@@ -1,0 +1,7 @@
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+startCommand = "python manage.py maintain_bokebi"
+cronSchedule = "*/5 * * * *"
+restartPolicyType = "NEVER"

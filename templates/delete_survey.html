@@ -1,1 +1,13 @@
-{% extends 'base.html' %}{% block content %}<section class="content-narrow"><h1>Supprimer « {{ survey.team_name }} »</h1><p>Cette action supprime définitivement l'enquête et ses réponses. Les demandes de contact, conservées séparément, ne sont pas supprimées par cette action.</p>{% if error %}<p class="error" role="alert">Clé de suppression incorrecte.</p>{% endif %}<form method="post">{% csrf_token %}<div class="form-group"><label for="key">Clé de suppression</label><input type="text" id="key" name="deletion_key" required></div><button class="primary-button">Supprimer définitivement</button></form></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Supprimer un sondage | Bokebi{% endblock %}
+{% block content %}
+<section class="prose">
+  <h1>Supprimer ce sondage</h1>
+  <p>La suppression du sondage et de ses résultats est définitive. Les demandes d’aide restent accessibles à Bokebi pour leur suivi.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% include 'components/field.html' with field=form.deletion_key %}
+    {% include 'components/submit.html' with label="Supprimer le sondage" %}
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,14 @@
+[run]
+branch = True
+source =
+    config
+    contacts
+    domain
+    surveys
+    manage
+omit =
+    */migrations/*
+
+[report]
+fail_under = 100
+show_missing = True

@@ -1,27 +1,49 @@
-from django.conf import settings
-from django.core.mail import send_mail
 from django.db import transaction
 
-from domain.ports import ContactRepository
-from .models import ContactRequestRecord
+from domain.entities import HelpRequest, HelpStatus, Situation, SurveyId
+from .models import HelpRequestRecord
 
-class DjangoContactRepository(ContactRepository):
-    def add(self, request):
-        ContactRequestRecord.objects.using("contacts").create(email=request.email, wants_colleagues=request.wants_colleagues, wants_organization=request.wants_organization, group_label=request.group_label)
-        if settings.CONTACT_NOTIFICATION_RECIPIENTS:
-            transaction.on_commit(
-                lambda: send_mail(
-                    "Nouvelle demande de mise en relation Bokebi",
-                    "Une nouvelle demande est disponible dans l’espace opérateur. "
-                    "Connectez-vous à /admin/contacts/contactrequestrecord/. "
-                    "Aucune coordonnée n’est incluse dans cet e-mail afin de préserver sa confidentialité.",
-                    settings.DEFAULT_FROM_EMAIL,
-                    settings.CONTACT_NOTIFICATION_RECIPIENTS,
-                    fail_silently=False,
-                ),
-                using="contacts",
-                # A notification is best-effort: the contact request has already
-                # been saved and an unavailable SMTP server must not turn the
-                # submitter's successful opt-in into an HTTP 500 response.
-                robust=True,
-            )
+
+def to_request(row):
+    return HelpRequest(
+        row.pk.hex, row.email, frozenset(Situation(s) for s in row.situations),
+        SurveyId(row.survey_id), row.from_survey, row.created_at, HelpStatus(row.status),
+        row.contacted_at, row.closed_at,
+    )
+
+
+class DjangoHelpRepository:
+    def get(self, request_id):
+        row = HelpRequestRecord.objects.filter(pk=request_id).first()
+        return None if row is None else to_request(row)
+
+    def add_once(self, request):
+        _, created = HelpRequestRecord.objects.get_or_create(
+            pk=request.id,
+            defaults={
+                "email": request.email,
+                "situations": sorted(request.situations),
+                "survey_id": request.survey_id,
+                "from_survey": request.from_survey,
+                "created_at": request.created_at,
+                "notification_due_at": request.created_at,
+            },
+        )
+        return created
+
+    @transaction.atomic(using="contacts")
+    def transition(self, request_id, status, now):
+        row = HelpRequestRecord.objects.select_for_update().get(pk=request_id)
+        request = to_request(row).transition(status, now)
+        row.status = request.status
+        row.contacted_at = request.contacted_at
+        row.closed_at = request.closed_at
+        if status != HelpStatus.NEW:
+            row.notification_due_at = None
+        row.save(update_fields=["status", "contacted_at", "closed_at", "notification_due_at"])
+
+    def purge_closed(self, cutoff):
+        count, _ = HelpRequestRecord.objects.filter(
+            status=HelpStatus.CLOSED, closed_at__lte=cutoff,
+        ).delete()
+        return count

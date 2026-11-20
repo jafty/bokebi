@@ -1,15 +1,29 @@
 import ast
+import sys
 from pathlib import Path
 
-def test_domain_has_no_framework_or_io_imports():
-    forbidden = {"django", "requests", "urllib", "pathlib", "socket", "sqlite3", "psycopg"}
-    imports = set()
-    for file in Path("domain").glob("*.py"):
-        for node in ast.walk(ast.parse(file.read_text())):
-            if isinstance(node, ast.Import): imports.update(alias.name.split(".")[0] for alias in node.names)
-            elif isinstance(node, ast.ImportFrom) and node.module: imports.add(node.module.split(".")[0])
-    assert not imports & forbidden
+from django.db import models, router
 
-def test_contact_model_has_no_survey_or_answer_link():
-    tree = ast.parse(Path("contacts/models.py").read_text())
-    assert all(not (isinstance(node, ast.Name) and node.id in {"ForeignKey", "OneToOneField", "ManyToManyField"}) for node in ast.walk(tree))
+from contacts.models import HelpRequestRecord
+from surveys.models import VoteReceipt, WorkplaceSurveyRecord
+
+
+def test_domain_imports_only_standard_library_or_domain():
+    for path in Path("domain").rglob("*.py"):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Import):
+                assert all(alias.name.split(".")[0] in sys.stdlib_module_names for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and not node.level:
+                assert node.module.split(".")[0] in sys.stdlib_module_names | {"domain"}
+
+
+def test_contacts_are_isolated_and_votes_have_no_individual_choices():
+    assert router.db_for_read(HelpRequestRecord) == "contacts"
+    assert router.db_for_write(HelpRequestRecord) == "contacts"
+    assert router.allow_relation(HelpRequestRecord(), WorkplaceSurveyRecord()) is False
+    assert router.allow_migrate("contacts", "contacts")
+    assert not router.allow_migrate("default", "contacts")
+    assert not router.allow_migrate("contacts", "surveys")
+    assert router.allow_migrate("default", "surveys")
+    assert {field.name for field in VoteReceipt._meta.fields} == {"id", "survey", "digest"}
+    assert not any(isinstance(field, models.ForeignKey) for field in HelpRequestRecord._meta.fields)

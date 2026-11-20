@@ -1,0 +1,9 @@
+{% if survey.response_count == 0 %}
+  <p class="lead">Les résultats seront disponibles à partir de 3 réponses.</p>
+{% elif survey.response_count == 1 %}
+  <p class="lead">Encore 2 réponses pour débloquer les résultats.</p>
+{% elif survey.response_count == 2 %}
+  <p class="lead">Plus qu’une réponse pour débloquer les résultats.</p>
+{% else %}
+  <p class="lead">{{ survey.response_count }} réponses enregistrées</p>
+{% endif %}

@@ -1,200 +1,179 @@
-from datetime import datetime, timezone
-import pytest
-from domain.entities import ContactRequest, SurveyId
-from domain.ports import Clock, ContactRepository, ParticipationRepository, SecretGateway, SurveyRepository, TokenGateway
-from domain.use_cases import CreateSurvey, DeleteSurvey, SubmitAnswers, SubmitContactOptIn, ViewSurveyResults
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 
-class Surveys(SurveyRepository):
-    def __init__(self): self.items = {}
-    def add(self, survey): self.items[survey.id] = survey
-    def get(self, survey_id): return self.items.get(survey_id)
-    def delete(self, survey_id): self.items.pop(survey_id)
-class Participations(ParticipationRepository):
-    def __init__(self): self.items = []
-    def add(self, participation): self.items.append(participation)
-    def for_survey(self, survey_id): return [item for item in self.items if item.survey_id == survey_id]
-class Contacts(ContactRepository):
-    def __init__(self): self.items = []
-    def add(self, request): self.items.append(request)
-class Tokens(TokenGateway):
-    def survey_id(self): return SurveyId("unique")
-    def deletion_key(self): return "ONE - TWO - THREE - FOUR"
-class Secrets(SecretGateway):
-    def encode(self, secret): return f"hash:{secret}"
-    def matches(self, secret, encoded): return encoded == self.encode(secret)
-class FixedClock(Clock):
-    def now(self): return datetime(2026, 1, 1, tzinfo=timezone.utc)
+import pytest
+
+from domain.entities import Ballot, HelpRequest, HelpStatus, Situation, Survey, SurveyId
+from domain.use_cases import CreateSurvey, DeleteSurvey, MaintainHelpRequests, RequestHelp
+
+NOW = datetime(2026, 11, 20, tzinfo=timezone.utc)
+SURVEY_ID = SurveyId("poll-id")
+
+
+class FixedClock:
+    def now(self):
+        return NOW
+
+
+class MemoryHelpRequests:
+    def __init__(self):
+        self.requests = {}
+
+    def add_once(self, request):
+        if request.id in self.requests:
+            return False
+        self.requests[request.id] = request
+        return True
+
+    def transition(self, request_id, status, now):
+        self.requests[request_id] = self.requests[request_id].transition(status, now)
+
+    def purge_closed(self, cutoff):
+        eligible = [
+            request.id for request in self.requests.values()
+            if request.closed_at is not None and request.closed_at <= cutoff
+        ]
+        for request_id in eligible:
+            del self.requests[request_id]
+        return len(eligible)
+
+
+class MemoryNotifications:
+    def __init__(self):
+        self.received = []
+
+    def request_received(self, request_id):
+        self.received.append(request_id)
+
+
+class MemorySurveys:
+    def __init__(self):
+        self.surveys = {}
+        self.receipts = {}
+
+    def create_once(self, survey, creator_receipt):
+        if survey.id not in self.receipts:
+            self.surveys[survey.id] = survey
+            self.receipts[survey.id] = creator_receipt
+        return self.surveys.get(survey.id)
+
+    def delete(self, survey_id):
+        del self.surveys[survey_id]
+
+
+class TestSecrets:
+    __test__ = False
+
+    def encode(self, value):
+        return "hash:" + value
+
+    def matches(self, value, encoded):
+        return self.encode(value) == encoded
+
 
 @pytest.fixture
-def created():
-    repository = Surveys()
-    result = CreateSurvey(repository, Tokens(), Secrets(), FixedClock()).execute(" Team ", "secret")
-    return repository, result
-
-def test_create_survey_generates_id_key_and_hashes_secrets(created):
-    repository, result = created
-    assert (result.survey.id, result.survey.team_name, result.deletion_key, result.survey.password_hash) == ("unique", "Team", "ONE - TWO - THREE - FOUR", "hash:secret") and repository.get(result.survey.id) == result.survey
-
-def test_create_survey_allows_no_password():
-    result = CreateSurvey(Surveys(), Tokens(), Secrets(), FixedClock()).execute("Team")
-    assert result.survey.password_hash is None
-
-def test_create_survey_rejects_blank_name():
-    with pytest.raises(ValueError): CreateSurvey(Surveys(), Tokens(), Secrets(), FixedClock()).execute("  ")
-
-def test_submit_answers_stores_one_anonymous_participation(created):
-    surveys, result = created; answers = Participations()
-    assert SubmitAnswers(surveys, answers).execute(result.survey.id, (1, 2, 3, 4, 5)) == 1 and answers.items[0].answers == (1, 2, 3, 4, 5)
-
-@pytest.mark.parametrize("values", [(1, 2), (0, 2, 3, 4, 5), (1, 2, 3, 4, 6)])
-def test_submit_answers_rejects_incomplete_or_out_of_range_values(created, values):
-    with pytest.raises(ValueError): SubmitAnswers(created[0], Participations()).execute(created[1].survey.id, values)
-
-def test_submit_answers_rejects_unknown_survey():
-    with pytest.raises(LookupError): SubmitAnswers(Surveys(), Participations()).execute(SurveyId("missing"), (1, 2, 3, 4, 5))
-
-def test_contact_opt_in_is_stored_without_survey_or_answer_identifier():
-    contacts = Contacts(); SubmitContactOptIn(contacts).execute(" ME@example.org ", True, False, " Team ")
-    assert contacts.items == [ContactRequest("me@example.org", True, False, "Team")]
-
-@pytest.mark.parametrize("email,colleagues,organization", [("invalid", True, False), ("me@example.org", False, False)])
-def test_contact_opt_in_requires_valid_email_and_a_purpose(email, colleagues, organization):
-    with pytest.raises(ValueError): SubmitContactOptIn(Contacts()).execute(email, colleagues, organization, "Team")
-
-def test_results_remain_locked_below_three_participations(created):
-    surveys, result = created; answers = Participations(); SubmitAnswers(surveys, answers).execute(result.survey.id, (1, 2, 3, 4, 5))
-    assert ViewSurveyResults(surveys, answers).execute(result.survey.id).averages is None
-
-def test_results_unlock_with_averages_at_three_participations(created):
-    surveys, result = created; answers = Participations(); use_case = SubmitAnswers(surveys, answers)
-    for row in ((1, 2, 3, 4, 5), (3, 2, 3, 2, 1), (5, 2, 3, 3, 3)): use_case.execute(result.survey.id, row)
-    assert ViewSurveyResults(surveys, answers).execute(result.survey.id).averages == (3.0, 2.0, 3.0, 3.0, 3.0)
-
-def test_results_reject_unknown_survey():
-    with pytest.raises(LookupError): ViewSurveyResults(Surveys(), Participations()).execute(SurveyId("missing"))
-
-def test_delete_survey_accepts_deletion_key(created):
-    surveys, result = created; DeleteSurvey(surveys, Secrets()).execute(result.survey.id, result.deletion_key)
-    assert surveys.get(result.survey.id) is None
-
-def test_delete_survey_rejects_wrong_key(created):
-    with pytest.raises(PermissionError): DeleteSurvey(created[0], Secrets()).execute(created[1].survey.id, "wrong")
+def request_record():
+    return HelpRequest("request-id", "person@example.com", frozenset({Situation.PAY}), SURVEY_ID, False, NOW)
 
 
-def test_create_survey_persists_hashed_deletion_key_and_clock(created):
-    surveys, result = created
-    assert surveys.get(result.survey.id).deletion_key_hash == "hash:ONE - TWO - THREE - FOUR"
-    assert result.survey.created_at == datetime(2026, 1, 1, tzinfo=timezone.utc)
+def test_help_request_allows_no_situations_and_is_replayed():
+    requests = MemoryHelpRequests()
+    notifications = MemoryNotifications()
+    submit = RequestHelp(requests, FixedClock(), notifications)
+    assert submit.execute("one", " person@example.com ", (), SURVEY_ID, from_survey=False)
+    assert not submit.execute("one", "second@example.com", (), SURVEY_ID, from_survey=False)
+    assert requests.requests["one"].email == "person@example.com"
+    assert not requests.requests["one"].situations
+    assert notifications.received == ["one"]
 
 
-@pytest.mark.parametrize("values", [(True, 2, 3, 4, 5), (1.0, 2, 3, 4, 5), (1, 2, 3, 4, 5, 1)])
-def test_invalid_answer_types_and_lengths_are_not_saved(created, values):
-    answers = Participations()
+@pytest.mark.parametrize("email", [" ", "invalid"])
+def test_help_request_validates_email(email):
     with pytest.raises(ValueError):
-        SubmitAnswers(created[0], answers).execute(created[1].survey.id, values)
-    assert answers.items == []
+        RequestHelp(MemoryHelpRequests(), FixedClock(), MemoryNotifications()).execute("one", email, (), SURVEY_ID, from_survey=False)
 
 
-@pytest.mark.parametrize("colleagues,organization", [(True, False), (False, True), (True, True)])
-def test_contact_opt_in_preserves_each_valid_preference(colleagues, organization):
-    contacts = Contacts()
-    SubmitContactOptIn(contacts).execute("person@example.org", colleagues, organization, "Team")
-    assert contacts.items == [ContactRequest("person@example.org", colleagues, organization, "Team")]
-
-
-def test_contact_opt_in_rejects_blank_group_without_saving():
-    contacts = Contacts()
+def test_help_request_deadline_and_transitions(request_record):
+    assert request_record.deadline == NOW + timedelta(hours=24)
     with pytest.raises(ValueError):
-        SubmitContactOptIn(contacts).execute("person@example.org", True, False, "  ")
-    assert contacts.items == []
+        request_record.transition(HelpStatus.IN_PROGRESS, NOW)
+    contacted = request_record.transition(HelpStatus.CONTACTED, NOW)
+    assert contacted.transition(HelpStatus.CONTACTED, NOW + timedelta(hours=1)) is contacted
+    active = contacted.transition(HelpStatus.IN_PROGRESS, NOW)
+    closed = active.transition(HelpStatus.CLOSED, NOW + timedelta(hours=24))
+    assert closed.contacted_at == NOW
+    assert closed.closed_at == NOW + timedelta(hours=24)
+    with pytest.raises(ValueError):
+        closed.transition(HelpStatus.NEW, NOW)
 
 
-@pytest.mark.parametrize("count", [0, 1, 2])
-def test_results_remain_locked_for_each_count_below_threshold(created, count):
-    surveys, result = created
-    answers = Participations()
-    for _ in range(count):
-        SubmitAnswers(surveys, answers).execute(result.survey.id, (1, 2, 3, 4, 5))
-    results = ViewSurveyResults(surveys, answers).execute(result.survey.id)
-    assert (results.participation_count, results.unlocked, results.averages, results.overall_assessment, results.assessments) == (count, False, None, None, ())
+def test_retention_includes_cutoff_and_only_closed(request_record):
+    repo = MemoryHelpRequests()
+    repo.add_once(request_record)
+    closed_at = NOW - timedelta(days=30)
+    repo.add_once(replace(request_record, id="expired").transition(HelpStatus.CLOSED, closed_at))
+    repo.add_once(replace(request_record, id="just-closed").transition(HelpStatus.CLOSED, closed_at + timedelta(seconds=1)))
+    use_case = MaintainHelpRequests(repo, FixedClock())
+    assert use_case.purge() == 1
+    use_case.transition(request_record.id, HelpStatus.CONTACTED)
+    assert repo.requests[request_record.id].contacted_at == NOW
+    assert "just-closed" in repo.requests
 
 
-@pytest.mark.parametrize("rows,expected", [
-    ((2, 2, 3, 2), "negative"),
-    ((2, 2, 3, 3), "watch"),
-    ((3, 3, 4, 3), "watch"),
-    ((3, 3, 4, 4), "positive"),
-])
-def test_results_assessment_thresholds(created, rows, expected):
-    surveys, result = created
-    answers = Participations()
-    for value in rows:
-        SubmitAnswers(surveys, answers).execute(result.survey.id, (value,) * 5)
-    results = ViewSurveyResults(surveys, answers).execute(result.survey.id)
-    assert results.overall_assessment == expected
-    assert results.assessments == (expected,) * 5
+@pytest.mark.parametrize("situations, none_applies", [(frozenset(), False), (frozenset({Situation.PAY}), True)])
+def test_ballot_requires_choices_or_exclusive_none(situations, none_applies):
+    with pytest.raises(ValueError):
+        Ballot(situations, none_applies)
 
 
-def test_delete_missing_survey_raises_lookup_error():
-    with pytest.raises(LookupError):
-        DeleteSurvey(Surveys(), Secrets()).execute(SurveyId("missing"), "key")
+def test_results_follow_total_and_counts_are_independent():
+    poll = Survey(SURVEY_ID, "Dépôt", "hash", None, NOW)
+    selected = Ballot(frozenset({Situation.PAY, Situation.PRESSURE}))
+    assert poll.results is None
+    assert poll.count(selected).results is None
+    two = poll.count(selected).count(Ballot(frozenset(), True))
+    assert two.results is None
+    three = two.count(selected)
+    assert three.results == (0, 0, 2, 0, 2)
+    assert three.count(selected).results == (0, 0, 3, 0, 3)
 
 
-def test_wrong_deletion_key_preserves_survey(created):
-    surveys, result = created
+def test_survey_defaults_and_explicit_first_vote(request_record):
+    repo = MemorySurveys()
+    create = CreateSurvey(repo, TestSecrets(), FixedClock())
+    poll = create.execute(request_record, " ", "", "delete", include_situations=False, receipt="vote")
+    assert (poll.name, poll.password_hash, poll.response_count) == ("Votre équipe", None, 0)
+    assert repo.receipts[poll.id] is None
+    assert create.execute(request_record, "Other", "", "delete", include_situations=True, receipt="vote") == poll
+    seeded = create.execute(
+        replace(request_record, survey_id=SurveyId("second")), " Dépôt ", "open", "delete",
+        include_situations=True, receipt="vote",
+    )
+    assert (seeded.name, seeded.password_hash, seeded.response_count) == ("Dépôt", "hash:open", 1)
+    assert repo.receipts[seeded.id] == "vote"
+
+
+def test_survey_rejects_colleague_and_never_seeds_empty_request(request_record):
+    create = CreateSurvey(MemorySurveys(), TestSecrets(), FixedClock())
     with pytest.raises(PermissionError):
-        DeleteSurvey(surveys, Secrets()).execute(result.survey.id, "wrong")
-    assert surveys.get(result.survey.id) == result.survey
+        create.execute(replace(request_record, from_survey=True), "", "", "d", include_situations=True, receipt="v")
+    poll = create.execute(replace(request_record, situations=frozenset()), "", "", "d", include_situations=True, receipt="v")
+    assert poll.response_count == 0
 
 
-def test_password_check_accepts_correct_and_rejects_wrong_password(created):
-    from domain.use_cases import CheckSurveyPassword
-    survey = created[1].survey
-    check = CheckSurveyPassword(Secrets())
-    assert check.execute(survey, "secret") is True
-    assert check.execute(survey, "wrong") is False
+def test_only_key_holder_can_delete_survey_and_replay_does_not_recreate(request_record):
+    repo = MemorySurveys()
+    create = CreateSurvey(repo, TestSecrets(), FixedClock())
+    poll = create.execute(request_record, "", "", "key", include_situations=False, receipt="v")
+    delete = DeleteSurvey(repo, TestSecrets())
+    with pytest.raises(PermissionError):
+        delete.execute(poll, "wrong")
+    delete.execute(poll, "key")
+    assert create.execute(request_record, "", "", "key", include_situations=False, receipt="v") is None
 
 
-def test_password_check_allows_unprotected_survey():
-    from domain.use_cases import CheckSurveyPassword
-    survey = CreateSurvey(Surveys(), Tokens(), Secrets(), FixedClock()).execute("Team").survey
-    assert CheckSurveyPassword(Secrets()).execute(survey, "") is True
-
-
-def test_domain_errors_provide_their_messages(created):
-    surveys, result = created
-    answers = Participations()
-    cases = [
-        (ValueError, "Team name is required", lambda: CreateSurvey(Surveys(), Tokens(), Secrets(), FixedClock()).execute(" ")),
-        (LookupError, "Survey not found", lambda: SubmitAnswers(Surveys(), answers).execute(SurveyId("missing"), (1,) * 5)),
-        (ValueError, "Every answer must be between 1 and 5", lambda: SubmitAnswers(surveys, answers).execute(result.survey.id, (0,) * 5)),
-        (LookupError, "Survey not found", lambda: ViewSurveyResults(Surveys(), answers).execute(SurveyId("missing"))),
-        (LookupError, "Survey not found", lambda: DeleteSurvey(Surveys(), Secrets()).execute(SurveyId("missing"), "key")),
-        (PermissionError, "Invalid deletion key", lambda: DeleteSurvey(surveys, Secrets()).execute(result.survey.id, "wrong")),
-        (ValueError, "A valid email is required", lambda: SubmitContactOptIn(Contacts()).execute("bad", True, False, "Team")),
-        (ValueError, "At least one contact option is required", lambda: SubmitContactOptIn(Contacts()).execute("a@b", False, False, "Team")),
-        (ValueError, "A group label is required", lambda: SubmitContactOptIn(Contacts()).execute("a@b", True, False, " ")),
-    ]
-    for error_type, message, action in cases:
-        with pytest.raises(error_type) as error:
-            action()
-        assert str(error.value) == message
-
-
-def test_unlocked_results_include_count_and_round_averages(created):
-    surveys, result = created
-    answers = Participations()
-    for value in (1, 1, 2):
-        SubmitAnswers(surveys, answers).execute(result.survey.id, (value,) * 5)
-    results = ViewSurveyResults(surveys, answers).execute(result.survey.id)
-    assert results.unlocked is True
-    assert results.participation_count == 3
-    assert results.averages == (1.33,) * 5
-
-
-def test_overall_average_rounds_to_two_decimal_places(created):
-    surveys, result = created
-    answers = Participations()
-    for row in ((2, 1, 1, 1, 1), (1, 1, 1, 1, 1), (1, 1, 1, 1, 1)):
-        SubmitAnswers(surveys, answers).execute(result.survey.id, row)
-    assert ViewSurveyResults(surveys, answers).execute(result.survey.id).overall_average == 1.07
+def test_situation_codes_must_be_known(request_record):
+    with pytest.raises(ValueError, match="Situation inconnue"):
+        Ballot(frozenset({"unknown"}))
+    with pytest.raises(ValueError, match="Situation inconnue"):
+        replace(request_record, situations=frozenset({"unknown"}))

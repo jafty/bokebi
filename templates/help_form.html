@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Recevoir de l’aide | Bokebi{% endblock %}
+{% block content %}
+<section class="prose">
+  <h1>Qu’est-ce qui ne va pas au travail&nbsp;?</h1>
+  <p>Une personne de Bokebi te répondra par e-mail sous 24&nbsp;h. Si aucune case ne correspond, tu peux continuer sans en cocher.</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="flow" value="{{ flow }}">
+    {{ form.non_field_errors }}
+    {% include 'components/situations.html' %}
+    {% include 'components/field.html' with field=form.email %}
+    <p class="secondary">Bokebi reçoit ton adresse e-mail et les situations que tu choisis pour pouvoir te répondre.{% if survey_id %} L’équipe verra aussi à quel sondage ta demande est liée.{% endif %}</p>
+    {% include 'components/submit.html' with label="Envoyer ma demande" %}
+  </form>
+</section>
+{% endblock %}

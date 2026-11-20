@@ -1,0 +1,9 @@
+<fieldset class="choices">
+  <legend>{{ form.situations.label }}</legend>
+  <p class="secondary">Tu peux choisir plusieurs situations.</p>
+  {{ form.situations.errors }}
+  {{ form.situations }}
+  {% if form.none_applies %}
+    <div class="choice-extra">{{ form.none_applies }} {{ form.none_applies.label_tag }}</div>
+  {% endif %}
+</fieldset>

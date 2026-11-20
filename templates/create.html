@@ -1,27 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}Préparer l'enquête | Bokebi{% endblock %}
+{% block title %}Partager avec tes collègues | Bokebi{% endblock %}
 {% block content %}
-<section class="content-narrow">
-{% if created %}
-  <h1>Ton enquête est prête.</h1>
-  <p>Avant de la partager, réponds aux cinq questions.</p>
-  <div class="notice-block">
-    <h2>Garde cette clé de suppression</h2>
-    <p>Elle permet de supprimer l'enquête et ses réponses. Elle ne pourra pas être retrouvée si tu la perds.</p>
-    <div class="copy-row"><input id="deletion-key" type="text" value="{{ created.deletion_key }}" readonly aria-label="Clé de suppression"><button type="button" data-copy="deletion-key">Copier</button></div>
-    <p class="copy-message" role="status" aria-live="polite"></p>
-  </div>
-  <a class="primary-button" href="{% url 'take-survey' created.survey.id %}">Répondre aux questions</a>
-{% else %}
-  <h1>Prépare ton lien à partager</h1>
-  <p>Nomme ton équipe, puis réponds aux cinq questions.</p>
-  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-  <form method="post">{% csrf_token %}
-    <div class="form-group"><label for="team-name">Nom de l'équipe ou du lieu de travail</label><p id="team-help" class="field-help">Visible par les participant·es et utilisé pour les demandes de contact. Choisis un nom reconnaissable, sans nom de personne.</p><input name="team_name" type="text" id="team-name" maxlength="200" value="{{ team_name|default:'' }}" aria-describedby="team-help" required></div>
-    <div class="form-group"><label for="password">Mot de passe (facultatif)</label><p id="password-help" class="field-help">Il limite l'accès à l'enquête et aux résultats. Communique-le séparément du lien et choisis un mot de passe différent de tes mots de passe habituels.</p><input name="password" type="password" id="password" aria-describedby="password-help" autocomplete="new-password"></div>
-    <p class="field-help">Une clé à conserver te sera donnée pour supprimer l'enquête.</p>
-    <button class="primary-button" type="submit">Créer le lien</button>
+<section class="prose">
+  <h1>Partager avec tes collègues</h1>
+  <p>Bokebi prépare un court sondage sur vos conditions de travail. Le lien ouvre le questionnaire et ta demande d’aide reste confidentielle.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% include 'components/field.html' with field=form.name %}
+    {% include 'components/field.html' with field=form.password %}
+    {% if can_seed %}
+      <div class="choice-extra">{{ form.include_situations }} {{ form.include_situations.label_tag }}</div>
+      <p class="secondary">Si tu coches cette case, les situations choisies dans ta demande entreront dans les résultats du sondage.</p>
+    {% endif %}
+    {% include 'components/submit.html' with label="Créer le lien de partage" %}
   </form>
-{% endif %}
 </section>
 {% endblock %}
