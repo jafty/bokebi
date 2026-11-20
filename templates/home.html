@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
-{% block content %}
+{% block header %}
+<div class="home-intro shell">
+  <header class="site-header">
+    <a class="wordmark" href="{% url 'home' %}">Bokebi.</a>
+  </header>
 <section class="hero prose">
   <h1>Tu subis des injustices au travail&nbsp;?</h1>
   <p class="lead">Heures sup impayées, planning, pression… Explique-nous ce qui se passe en quelques clics. Une personne de Bokebi te répond par e-mail sous 24&nbsp;h pour faire le point et t’aider à voir ce que tu peux faire.</p>
@@ -7,6 +11,9 @@
   <p class="secondary">Gratuit. Aucun compte à créer. Rien à rédiger.</p>
   <p>Tu ne sais pas si ta situation est normale&nbsp;? Tu peux quand même nous en parler.</p>
 </section>
+</div>
+{% endblock %}
+{% block content %}
 <section class="section">
   <h2>Comment Bokebi peut t’aider</h2>
   <div class="help-options">

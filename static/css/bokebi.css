@@ -5,8 +5,8 @@
   --muted: #545054;
   --line: #dad6d8;
   --field-border: #8d8288;
-  --accent: #94153d;
-  --focus: #ad1c4b;
+  --accent: #d7265e;
+  --focus: #a91343;
   --highlight: #fff2f6;
   font-family: Georgia, "Times New Roman", serif;
   line-height: 1.6;
@@ -69,6 +69,22 @@ a:hover { text-decoration-thickness: .12em; }
   margin-top: clamp(2rem, 5vw, 4rem);
   padding-top: clamp(1.25rem, 3vw, 2.5rem);
 }
+.home-intro {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+.home-intro .site-header { margin-bottom: 0; }
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding-block: 1.5rem;
+}
+.home-intro + main > .section:first-child { margin-top: 0; }
 .hero h1 { max-width: 15ch; }
 .lead { font-size: clamp(1.15rem, 2.5vw, 1.45rem); }
 .secondary, .context { color: var(--muted); }
@@ -110,18 +126,33 @@ input[type="text"], input[type="password"], input[type="email"], input[type="url
 .field .secondary { margin: .3rem 0 0; }
 .choices { border: 0; padding: 0; margin-inline: 0; min-width: 0; }
 .choices .secondary { margin: .25rem 0 .5rem; }
-.choices label, .choice-extra {
+.choice-list { display: grid; gap: .6rem; }
+.choices .choice-card {
   display: flex;
-  align-items: baseline;
-  gap: .5rem;
-  padding-block: .45rem;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3.5rem;
+  padding: .8rem 1rem;
+  border: 1px solid #bbb;
+  background: #fff;
+  cursor: pointer;
 }
-.choice-extra { margin-top: .35rem; }
+.choice-card:hover { border-color: var(--accent); }
+.choice-card:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--highlight);
+}
+.choice-card:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.choice-none { margin-top: 1rem; }
+.choice-extra { margin: .35rem 0; }
 input[type="checkbox"] {
   accent-color: var(--accent);
   flex-shrink: 0;
-  width: 1rem;
-  height: 1rem;
+  width: 1.1rem;
+  height: 1.1rem;
   margin: 0;
 }
 .errorlist {

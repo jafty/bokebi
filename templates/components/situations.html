@@ -2,8 +2,18 @@
   <legend>{{ form.situations.label }}</legend>
   <p class="secondary">Tu peux choisir plusieurs situations.</p>
   {{ form.situations.errors }}
-  {{ form.situations }}
+  <div class="choice-list">
+    {% for choice in form.situations %}
+      <label class="choice-card">
+        {{ choice.tag }}
+        <span>{{ choice.choice_label }}</span>
+      </label>
+    {% endfor %}
+  </div>
   {% if form.none_applies %}
-    <div class="choice-extra">{{ form.none_applies }} {{ form.none_applies.label_tag }}</div>
+    <label class="choice-card choice-none">
+      {{ form.none_applies }}
+      <span>{{ form.none_applies.label }}</span>
+    </label>
   {% endif %}
 </fieldset>

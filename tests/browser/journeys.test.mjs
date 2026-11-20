@@ -22,7 +22,7 @@ test("desktop keyboard help flow, optional poll, undistinguished votes and retur
   const desktop = await creator.newPage();
   desktop.on("pageerror", (error) => errors.push(error.message));
   await desktop.goto("/");
-  await desktop.getByRole("link", { name: "Confidentialité", exact: true }).first().focus();
+  await desktop.getByRole("link", { name: "Bokebi.", exact: true }).first().focus();
   await desktop.keyboard.press("Tab");
   const helpLink = desktop.getByRole("link", { name: "Recevoir de l’aide", exact: true }).first();
   assert.equal(await helpLink.evaluate((link) => document.activeElement === link), true);

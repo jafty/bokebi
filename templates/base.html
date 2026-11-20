@@ -9,10 +9,9 @@
   <script type="module" src="{% static 'js/bokebi.mjs' %}"></script>
 </head>
 <body>
-  <header class="site-header shell">
+  {% block header %}<header class="site-header shell">
     <a class="wordmark" href="{% url 'home' %}">Bokebi.</a>
-    <a href="{% url 'information-page' 'privacy' %}">Confidentialité</a>
-  </header>
+  </header>{% endblock %}
   <main class="shell">
     {% block content %}{% endblock %}
   </main>
