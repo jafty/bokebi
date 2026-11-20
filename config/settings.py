@@ -74,4 +74,4 @@ CSRF_COOKIE_SECURE = not DEBUG
 LANGUAGE_CODE = "fr-fr"
 TIME_ZONE = "Europe/Paris"
 SECURE_REFERRER_POLICY = "same-origin"
-BOKEBI_PUBLIC_URL = os.getenv("BOKEBI_PUBLIC_URL", "https://bokebi.fr").rstrip("/")
+BOKEBI_PUBLIC_URL = os.getenv("BOKEBI_PUBLIC_URL", "https://www.bokebi.fr").rstrip("/")

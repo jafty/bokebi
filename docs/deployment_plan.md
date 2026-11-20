@@ -6,7 +6,7 @@ Configurer deux services PostgreSQL privés pour les données de sondage et les 
 
 - `DATABASE_URL` et `CONTACT_DATABASE_URL` pointent vers les deux bases.
 - `SECRET_KEY`, `ALLOWED_HOSTS` et `CSRF_TRUSTED_ORIGINS` correspondent au déploiement HTTPS avec `DEBUG=0`.
-- `BOKEBI_PUBLIC_URL` contient l’origine HTTPS utilisée dans les liens d’alerte.
+- `BOKEBI_PUBLIC_URL` contient l’origine HTTPS utilisée dans les liens d’alerte. En production, utiliser `https://www.bokebi.fr` pour conserver le chemin vers la file admin.
 - `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` et `CONTACT_NOTIFICATION_RECIPIENTS` configurent les alertes. Le corps du message contient uniquement un lien vers la file admin. L’équipe se charge ensuite de la réponse depuis la boîte `entraide@bokebi.fr`.
 
 ## Bascule du parcours historique
