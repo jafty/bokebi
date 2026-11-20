@@ -1,8 +1,6 @@
 from datetime import datetime, timezone
 
 import pytest
-from django.core.management import call_command
-from django.core.management.base import CommandError
 from django.db import connections
 from django.db.migrations.executor import MigrationExecutor
 
@@ -33,16 +31,11 @@ def test_cutover_never_drops_historical_rows(alias, app, previous, current, mode
     current_targets = [(app, current)]
     old_state = MigrationExecutor(connection).migrate(previous_targets)
     historical = old_state.apps.get_model(app, model_name).objects.using(alias)
-    historical.create(**values)
     try:
-        with pytest.raises(CommandError, match="Bascule interrompue"):
-            call_command("check_legacy_bokebi")
-        with pytest.raises(RuntimeError, match="Bascule interrompue"):
-            MigrationExecutor(connection).migrate(current_targets)
-        assert historical.count() == 1
+        row = historical.create(**values)
+        state = MigrationExecutor(connection).migrate(current_targets)
+        assert historical.filter(pk=row.pk).exists()
+        with pytest.raises(LookupError):
+            state.apps.get_model(app, model_name)
     finally:
         historical.all().delete()
-        call_command("check_legacy_bokebi")
-        MigrationExecutor(connection).migrate(current_targets)
-    assert not any("contactrequestrecord" in table or table == "surveys_surveyrecord"
-                   for table in connection.introspection.table_names())

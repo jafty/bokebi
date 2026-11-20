@@ -11,8 +11,8 @@ Configurer deux services PostgreSQL privés pour les données de sondage et les 
 
 ## Bascule du parcours historique
 
-1. Avant la bascule, suspendre les écritures de l’ancien service. Sauvegarder séparément les deux bases, puis exécuter `python manage.py check_legacy_bokebi`. Si une table historique contient des lignes, interrompre la bascule et décider de leur traitement.
-2. Démarrer le service web. Son point d’entrée vérifie de nouveau les bases, migre chaque base séparément et collecte les fichiers statiques. Les migrations vérifient également que les tables historiques concernées sont vides avant de les retirer.
+1. Sauvegarder séparément les deux bases. Les tables historiques restent en place avec leurs données. Le nouveau parcours utilise ses propres tables et les anciens liens de sondage ne sont plus servis.
+2. Démarrer le service web. Son point d’entrée migre chaque base séparément et collecte les fichiers statiques.
 3. Configurer un service de maintenance Railway depuis le même dépôt, avec `/railway.maintenance.toml` comme fichier de configuration. Lui donner les mêmes accès de base et paramètres de notification. La tâche `python manage.py maintain_bokebi` s’exécute toutes les cinq minutes et termine ensuite. Activer ce service une fois les migrations web terminées.
 4. Créer un compte admin avec `python manage.py createsuperuser`, puis attribuer à l’équipe les permissions de lecture des sondages et de lecture et changement des demandes. Définir la durée effective de conservation des sauvegardes et des e-mails avant publication.
 

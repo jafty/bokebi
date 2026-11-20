@@ -5,14 +5,6 @@ import surveys.models
 from django.db import migrations, models
 
 
-def require_empty_legacy_tables(apps, schema_editor):
-    alias = schema_editor.connection.alias
-    for model_name in ('SurveyRecord', 'ParticipationRecord'):
-        model = apps.get_model('surveys', model_name)
-        if model.objects.using(alias).exists():
-            raise RuntimeError("Des données Bokebi historiques existent. Bascule interrompue.")
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -20,7 +12,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(require_empty_legacy_tables, migrations.RunPython.noop),
         migrations.CreateModel(
             name='SurveyCreationReceipt',
             fields=[
@@ -49,11 +40,12 @@ class Migration(migrations.Migration):
                 ('survey', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='surveys.workplacesurveyrecord')),
             ],
         ),
-        migrations.DeleteModel(
-            name='ParticipationRecord',
+        # Retire the ORM model while preserving the historical table.
+        migrations.SeparateDatabaseAndState(
+            state_operations=[migrations.DeleteModel(name='ParticipationRecord')],
         ),
-        migrations.DeleteModel(
-            name='SurveyRecord',
+        migrations.SeparateDatabaseAndState(
+            state_operations=[migrations.DeleteModel(name='SurveyRecord')],
         ),
         migrations.AddConstraint(
             model_name='votereceipt',

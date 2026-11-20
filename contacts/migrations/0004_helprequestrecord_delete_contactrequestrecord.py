@@ -4,14 +4,6 @@ import domain.entities
 from django.db import migrations, models
 
 
-def require_empty_legacy_tables(apps, schema_editor):
-    alias = schema_editor.connection.alias
-    for model_name in ('ContactRequestRecord',):
-        model = apps.get_model('contacts', model_name)
-        if model.objects.using(alias).exists():
-            raise RuntimeError("Des données Bokebi historiques existent. Bascule interrompue.")
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -19,7 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(require_empty_legacy_tables, migrations.RunPython.noop),
         migrations.CreateModel(
             name='HelpRequestRecord',
             fields=[
@@ -38,7 +29,8 @@ class Migration(migrations.Migration):
                 'ordering': ('created_at',),
             },
         ),
-        migrations.DeleteModel(
-            name='ContactRequestRecord',
+        # Retire the ORM model while preserving the historical table.
+        migrations.SeparateDatabaseAndState(
+            state_operations=[migrations.DeleteModel(name='ContactRequestRecord')],
         ),
     ]
