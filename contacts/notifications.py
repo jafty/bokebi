@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from urllib.error import HTTPError
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -31,6 +32,8 @@ def send_help_notification(request_id, now):
                 settings.DEFAULT_FROM_EMAIL,
                 recipients,
             ) == 1
+        except HTTPError as error:
+            logger.error("Échec de notification Bokebi (Brevo HTTP %s).", error.code)
         except Exception as error:
             logger.error("Échec de notification Bokebi (%s).", type(error).__name__)
     row.notification_due_at = None if delivered else now + RETRY_DELAY

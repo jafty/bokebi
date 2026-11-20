@@ -159,3 +159,22 @@ def test_idempotent_new_status_keeps_pending_notification(client):
     DjangoHelpRepository().transition(row.pk, HelpStatus.NEW, timezone.now())
     row.refresh_from_db()
     assert row.notification_due_at == due
+
+
+def test_brevo_http_failure_logs_status_without_response_body(client, settings, monkeypatch, caplog):
+    from io import BytesIO
+    from urllib.error import HTTPError
+
+    settings.CONTACT_NOTIFICATION_RECIPIENTS = ["operator@example.com"]
+
+    def fail(*args):
+        raise HTTPError("https://api.brevo.com", 401, "unauthorized", {}, BytesIO(b"private data"))
+
+    monkeypatch.setattr("contacts.notifications.send_mail", fail)
+    ask(client)
+    row = HelpRequestRecord.objects.get()
+    send_help_notification(row.pk, timezone.now())
+    row.refresh_from_db()
+    assert "Brevo HTTP 401" in caplog.text
+    assert "private data" not in caplog.text
+    assert row.notification_due_at is not None
