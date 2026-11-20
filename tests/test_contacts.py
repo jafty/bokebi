@@ -161,20 +161,37 @@ def test_idempotent_new_status_keeps_pending_notification(client):
     assert row.notification_due_at == due
 
 
-def test_brevo_http_failure_logs_status_without_response_body(client, settings, monkeypatch, caplog):
+@pytest.mark.parametrize(("status", "body", "diagnostic"), [
+    (401, b'{"message":"We have detected you are using an unrecognised IP address 192.0.2.1. private data"}',
+     "adresse IP non autorisée (192.0.2.1)"),
+    (401, b'{"message":"Unrecognized IP address 2001:db8::1. private data"}',
+     "adresse IP non autorisée (2001:db8::1)"),
+    (401, b'{"message":"Unrecognised IP address private data"}', "adresse IP non autorisée"),
+    (401, b'{"message":"Key not found","details":"private data"}', "clé API absente ou invalide"),
+    (401, b'{"message":"private data"}', "authentification refusée sans motif reconnu"),
+    (401, b'{"details":"private data"}', "authentification refusée sans motif reconnu"),
+    (401, b'["private data"]', "authentification refusée sans motif reconnu"),
+    (401, b"private data", "authentification refusée sans motif reconnu"),
+    (500, b"private data", "Brevo HTTP 500"),
+])
+def test_brevo_http_failure_logs_safe_diagnostics(
+    client, settings, monkeypatch, caplog, status, body, diagnostic,
+):
     from io import BytesIO
     from urllib.error import HTTPError
 
     settings.CONTACT_NOTIFICATION_RECIPIENTS = ["operator@example.com"]
 
     def fail(*args):
-        raise HTTPError("https://api.brevo.com", 401, "unauthorized", {}, BytesIO(b"private data"))
+        raise HTTPError("https://api.brevo.com", status, "private reason", {}, BytesIO(body))
 
     monkeypatch.setattr("contacts.notifications.send_mail", fail)
     ask(client)
     row = HelpRequestRecord.objects.get()
     send_help_notification(row.pk, timezone.now())
     row.refresh_from_db()
-    assert "Brevo HTTP 401" in caplog.text
+    assert f"Brevo HTTP {status}" in caplog.text
+    assert diagnostic in caplog.text
     assert "private data" not in caplog.text
+    assert "private reason" not in caplog.text
     assert row.notification_due_at is not None
