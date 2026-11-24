@@ -2,7 +2,8 @@
 {% block header %}
 <div class="home-intro shell">
   <header class="site-header">
-    <a class="wordmark" href="{% url 'home' %}">Bokebi.</a>
+    <a class="wordmark" href="{% url 'home' %}">Bokebi<span class="logo-dot">.</span></a>
+    <a class="nav-secondary" href="#comment-bokebi-peut-aider">Comment Bokebi peut t’aider</a>
   </header>
 <section class="hero prose">
   <h1>Tu subis des injustices au travail&nbsp;?</h1>
@@ -14,7 +15,7 @@
 </div>
 {% endblock %}
 {% block content %}
-<section class="section">
+<section class="section" id="comment-bokebi-peut-aider">
   <h2>Comment Bokebi peut t’aider</h2>
   <div class="help-options">
     <section>

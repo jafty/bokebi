@@ -10,14 +10,14 @@
 </head>
 <body>
   {% block header %}<header class="site-header shell">
-    <a class="wordmark" href="{% url 'home' %}">Bokebi.</a>
+    <a class="wordmark" href="{% url 'home' %}">Bokebi<span class="logo-dot">.</span></a>
   </header>{% endblock %}
   <main class="shell">
     {% block content %}{% endblock %}
   </main>
   <footer class="site-footer">
     <div class="shell footer-inner">
-      <span>Bokebi. Initiative indépendante.</span>
+      <span>Bokebi<span class="logo-dot">.</span> Initiative indépendante.</span>
       <nav aria-label="Informations">
         <a href="{% url 'information-page' 'legal' %}">Mentions légales</a>
         <a href="{% url 'information-page' 'privacy' %}">Confidentialité</a>

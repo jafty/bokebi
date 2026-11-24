@@ -194,3 +194,34 @@ meter::-moz-meter-bar { border-radius: 0; background: var(--accent); }
   .mobile-share { display: inline-block; }
   .choices label, .choice-extra, .action { min-height: 44px; }
 }
+
+/* Refined editorial hierarchy and shared page structure. */
+.logo-dot { color: var(--accent); }
+.nav-secondary { color: var(--ink); font-size: .9rem; text-decoration-color: var(--muted); text-decoration-thickness: 1px; text-underline-offset: .25em; }
+h1, h2 { font-weight: 400; letter-spacing: -.02em; }
+h3 { font-size: 1.125rem; line-height: 1.35; }
+.hero h1 { line-height: 1.12; }
+.hero .lead { line-height: 1.65; }
+.help-options { counter-reset: help-option; gap: 2rem; }
+.help-options section { counter-increment: help-option; }
+.help-options section::before {
+  content: counter(help-option, decimal-leading-zero);
+  display: block;
+  margin-bottom: .65rem;
+  color: var(--focus);
+  font: 600 .75rem/1.2 Arial, sans-serif;
+  letter-spacing: .08em;
+}
+.help-options h3 { margin-bottom: .45rem; }
+.help-options p { color: var(--muted); font-size: .95rem; line-height: 1.7; }
+.site-footer { padding-block: 2.5rem; }
+.footer-inner { display: grid; grid-template-columns: minmax(12rem, 1fr) auto; align-items: start; gap: 1.5rem 2rem; }
+.footer-inner nav { justify-content: flex-end; gap: .65rem 1.3rem; }
+.footer-inner > a { grid-column: 1 / -1; padding-top: 1.25rem; border-top: 1px solid var(--line); }
+.footer-inner a { color: var(--muted); text-decoration-color: #999; text-decoration-thickness: 1px; }
+@media (max-width: 640px) {
+  .site-header { align-items: center; }
+  .nav-secondary { max-width: 14rem; text-align: right; }
+  .footer-inner { grid-template-columns: 1fr; }
+  .footer-inner nav { justify-content: flex-start; }
+}
